@@ -86,7 +86,10 @@ export function generateTimeSlots(
   const openMinutes = timeToMinutes(openTime);
   const closeMinutes = timeToMinutes(closeTime);
 
-  for (let start = openMinutes; start + durationMinutes <= closeMinutes; start += 30) {
+  // ✅ El incremento ahora usa la duración del servicio
+  // Si el servicio dura 60 min, los slots serán cada 60 min (9:00, 10:00, 11:00...)
+  // Si el servicio dura 30 min, los slots serán cada 30 min (9:00, 9:30, 10:00...)
+  for (let start = openMinutes; start + durationMinutes <= closeMinutes; start += durationMinutes) {
     const end = start + durationMinutes;
     const startStr = minutesToTime(start);
     const endStr = minutesToTime(end);
