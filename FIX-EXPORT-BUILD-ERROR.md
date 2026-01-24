@@ -64,26 +64,33 @@ export async function GET(request: Request) {
 
 ---
 
-### **Fix 2: `/negocio-desactivado/page.tsx`**
+### **Fix 2: `/negocio-desactivado` (SOLUCIÓN FINAL)**
 
-**ANTES:**
+**PROBLEMA:**
+Next.js intentaba pre-renderizar la página durante el build, pero `useSession()` requiere contexto del navegador.
+
+**SOLUCIÓN:**
+Crear un `layout.tsx` en la carpeta con `dynamic = 'force-dynamic'`:
+
+**Archivo NUEVO:** `app/negocio-desactivado/layout.tsx`
 ```typescript
-'use client';
-
-// ❌ NO SE PUEDE en client components
+// ✅ Forzar renderizado dinámico para esta ruta
 export const dynamic = 'force-dynamic';
 
-export default function NegocioDesactivadoPage() {
-  const { data: session } = useSession();
-  // ...
+export default function NegocioDesactivadoLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
 }
 ```
 
-**DESPUÉS:**
+**Archivo:** `app/negocio-desactivado/page.tsx`
 ```typescript
 'use client';
 
-// ✅ Client components son dinámicos por defecto
+// ✅ Sin export const dynamic aquí
 export default function NegocioDesactivadoPage() {
   const { data: session } = useSession();
   // ...
@@ -91,9 +98,10 @@ export default function NegocioDesactivadoPage() {
 ```
 
 **Por qué:**
-- `'use client'` automáticamente hace la página dinámica
-- `export const dynamic` solo se usa en **Server Components**
-- Intentar usar ambos causa error de export durante build
+- Client components (`'use client'`) **no pueden** usar `export const dynamic`
+- Pero Next.js aún intenta pre-renderizarlos si puede
+- La solución es configurar el `layout.tsx` parent con `dynamic = 'force-dynamic'`
+- Esto hace que **toda la ruta** sea dinámica, incluyendo la página client-side
 
 ---
 
@@ -127,14 +135,24 @@ export async function GET(request: Request) {
 
 #### ❌ **NO USAR EN:**
 
-1. **Client Components** (`'use client'`):
+1. **Client Components directamente** (`'use client'`):
 ```typescript
-// ❌ INCORRECTO
+// ❌ INCORRECTO - El export no puede estar en client components
 'use client';
-export const dynamic = 'force-dynamic'; // Error!
+export const dynamic = 'force-dynamic'; // ❌ Error!
 
 export default function ClientPage() {
   // ...
+}
+
+// ✅ CORRECTO - Poner en layout.tsx parent
+// app/mi-ruta/layout.tsx
+export const dynamic = 'force-dynamic'; // ✅ OK en layout
+
+// app/mi-ruta/page.tsx
+'use client';
+export default function ClientPage() {
+  // ✅ OK
 }
 ```
 
@@ -287,8 +305,11 @@ Si los datos son únicos por request (ej: search, filters) → no uses `revalida
    - Cambió de `revalidate = 30` → `dynamic = 'force-dynamic'`
 
 2. ✅ `app/negocio-desactivado/page.tsx`
-   - Removió `export const dynamic = 'force-dynamic'`
-   - Mantiene `'use client'` (dinámico por defecto)
+   - Mantiene solo `'use client'` (sin export const dynamic)
+
+3. ✅ `app/negocio-desactivado/layout.tsx` **[NUEVO ARCHIVO]**
+   - Agregado con `export const dynamic = 'force-dynamic'`
+   - Hace que toda la ruta sea dinámica
 
 ---
 

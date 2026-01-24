@@ -7,10 +7,10 @@
 - **Problema:** Usaba `revalidate = 30` pero también `request.url`
 - **Solución:** Cambió a `dynamic = 'force-dynamic'`
 
-### **Error 2: Client Component con export inválido**
-- **Archivo:** `app/negocio-desactivado/page.tsx`
-- **Problema:** Tenía `export const dynamic` en un `'use client'`
-- **Solución:** Removió el export (client components son dinámicos por defecto)
+### **Error 2: Client Component con pre-rendering fallido**
+- **Archivos:** `app/negocio-desactivado/page.tsx` y `layout.tsx`
+- **Problema:** Next.js intentaba pre-renderizar pero `useSession()` falla sin contexto
+- **Solución:** Creó `layout.tsx` con `dynamic = 'force-dynamic'` para forzar rendering dinámico de toda la ruta
 
 ---
 

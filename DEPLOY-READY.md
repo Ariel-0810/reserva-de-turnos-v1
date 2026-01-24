@@ -29,10 +29,18 @@ Export encountered errors on /negocio-desactivado
 
 **Solución:**
 ```typescript
-// app/negocio-desactivado/page.tsx
+// ✅ NUEVO: app/negocio-desactivado/layout.tsx
+export const dynamic = 'force-dynamic';
+
+export default function Layout({ children }) {
+  return children;
+}
+
+// app/negocio-desactivado/page.tsx (sin cambios)
 'use client';
-// ✅ REMOVIDO: export const dynamic = 'force-dynamic'
-// Client components son dinámicos por defecto
+export default function NegocioDesactivadoPage() {
+  // useSession() funciona correctamente
+}
 ```
 
 **Resultado:**
@@ -80,14 +88,15 @@ Export encountered errors on /negocio-desactivado
 3. ✅ `app/layout.tsx` - Font optimization + preconnect
 4. ✅ `app/booking/[slug]/page.tsx` - ISR habilitado
 5. ✅ `app/api/public/business/[slug]/route.ts` - Cache headers
-6. ✅ `app/api/public/slots/route.ts` - ISR + cache
+6. ✅ `app/api/public/slots/route.ts` - Dynamic rendering
 7. ✅ `app/api/signup/route.ts` - Email asíncrono
 8. ✅ `lib/utils.ts` - Timezone fix + generación slots
 9. ✅ `lib/auth-options.ts` - Control negocio desactivado
 10. ✅ `app/dashboard/layout.tsx` - Protección dashboard
 11. ✅ `app/login/page.tsx` - Redirección automática
 12. ✅ `app/negocio-desactivado/page.tsx` - Página informativa
-13. ✅ `package.json` - Scripts de optimización
+13. ✅ `app/negocio-desactivado/layout.tsx` - **NUEVO:** Dynamic rendering
+14. ✅ `package.json` - Scripts de optimización
 
 ### **Documentación (9 archivos):**
 1. ✅ `OPTIMIZACION.md` - Guía completa
