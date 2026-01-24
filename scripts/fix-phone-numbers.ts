@@ -9,14 +9,11 @@
  * 3. Corrige números de clientes en la tabla Bookings (campo customerPhone)
  * 
  * Uso: npm run fix-phones
+ * 
+ * Nota: Las variables de entorno se cargan automáticamente con --env-file=.env
  */
 
-// ✅ Cargar variables de entorno ANTES de cualquier import
-import { config } from 'dotenv';
-import { resolve } from 'path';
-config({ path: resolve(__dirname, '../.env') });
-
-import { initDb } from '../lib/db';
+import { initDb, Op } from '../lib/db';
 import { User } from '../lib/models/User';
 import { Business } from '../lib/models/Business';
 import { Booking } from '../lib/models/Booking';
@@ -94,7 +91,7 @@ async function fixPhoneNumbers() {
     console.log('📱 Corrigiendo números en tabla Users...');
     const users = await User.findAll({
       where: {
-        phone: { $ne: null }
+        phone: { [Op.ne]: null }
       }
     });
     
@@ -151,7 +148,7 @@ async function fixPhoneNumbers() {
     console.log('📱 Corrigiendo números en tabla Bookings...');
     const bookings = await Booking.findAll({
       where: {
-        customerPhone: { $ne: null }
+        customerPhone: { [Op.ne]: null }
       }
     });
     
