@@ -6,26 +6,39 @@ Todos los errores han sido resueltos. El proyecto está listo para deployment en
 
 ---
 
-## 🔧 ÚLTIMO FIX APLICADO
+## 🔧 ÚLTIMOS FIXES APLICADOS
 
-### **Error de Build Resuelto:**
+### **Errores de Build Resueltos:**
 
-**Problema:**
+**Error 1: API Route `/api/public/slots`**
 ```
-Error occurred prerendering page "/negocio-desactivado"
-TypeError: Cannot destructure property 'data' of '(0 , a.useSession)(...)' as it is undefined.
+Route couldn't be rendered statically because it used `request.url`
+```
+
+**Solución:**
+```typescript
+// app/api/public/slots/route.ts
+// Cambió de: export const revalidate = 30
+export const dynamic = 'force-dynamic'; // ✅ CORRECTO
+```
+
+**Error 2: Client Component `/negocio-desactivado`**
+```
+Export encountered errors on /negocio-desactivado
 ```
 
 **Solución:**
 ```typescript
 // app/negocio-desactivado/page.tsx
-export const dynamic = 'force-dynamic'; // ✅ AGREGADO
+'use client';
+// ✅ REMOVIDO: export const dynamic = 'force-dynamic'
+// Client components son dinámicos por defecto
 ```
 
 **Resultado:**
 - ✅ Build exitoso
 - ✅ 0 errores de linting
-- ✅ Página funciona perfectamente
+- ✅ Todas las páginas funcionan perfectamente
 
 ---
 
@@ -114,9 +127,11 @@ npm run build
 ### **2. Commit y Push:**
 ```bash
 git add .
-git commit -m "fix: error de build en página negocio-desactivado"
+git commit -m "fix: configuración correcta de renderizado dinámico para build"
 git push
 ```
+
+**Documentación del fix:** Ver `FIX-EXPORT-BUILD-ERROR.md`
 
 ---
 

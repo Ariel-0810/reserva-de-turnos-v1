@@ -1,5 +1,5 @@
-// ✅ Caché corto para slots (30 segundos)
-export const revalidate = 30;
+// ✅ Forzar renderizado dinámico (usa request.url)
+export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 //import { Service, BusinessHours, Booking, Op } from '@/lib/db';
