@@ -15,13 +15,37 @@ export interface WhatsAppBookingParams {
 
 /**
  * Normalizes a phone number for WhatsApp link
- * Removes all non-numeric characters except leading +
+ * Removes all non-numeric characters and ensures correct format
  */
 export function normalizePhoneNumber(phone: string): string {
-  // Remove all non-numeric characters except +
-  let normalized = phone.replace(/[^0-9+]/g, '');
-  // Remove + if present (wa.me doesn't need it)
-  normalized = normalized.replace(/^\+/, '');
+  if (!phone) return '';
+  
+  // Remove all non-numeric characters (including +, spaces, dashes, etc.)
+  let normalized = phone.replace(/\D/g, '');
+  
+  // Si el número no empieza con 549 para Argentina, intentar arreglarlo
+  // Esto maneja casos donde el número está mal guardado
+  if (normalized.length >= 10) {
+    // Si empieza con 54 pero no con 549, agregar el 9
+    if (normalized.startsWith('54') && !normalized.startsWith('549')) {
+      // Verificar si el siguiente dígito es 9 (celular argentino)
+      // Si no, agregar el 9 entre el 54 y el resto
+      const rest = normalized.substring(2);
+      if (rest.startsWith('11') || rest.startsWith('9')) {
+        // Es un celular de CABA o ya tiene el 9
+        normalized = '549' + rest;
+      }
+    }
+    // Si empieza con 9 solamente (falta el 54)
+    else if (normalized.startsWith('9') && normalized.length === 12) {
+      normalized = '54' + normalized;
+    }
+    // Si no empieza con 54 pero tiene 10 dígitos (solo número local)
+    else if (!normalized.startsWith('54') && normalized.length === 10) {
+      normalized = '549' + normalized;
+    }
+  }
+  
   return normalized;
 }
 

@@ -49,7 +49,7 @@ export default function SignupPage() {
       
       // Construir teléfono completo con prefijo de Argentina para WhatsApp
       const fullPhone = formData.phone 
-        ? buildFullPhoneNumber('AR', formData.phone)
+        ? buildFullPhoneNumber(phoneConfig.dialCode, formData.phone)
         : '';
       
       console.log('📱 Teléfono completo para WhatsApp:', fullPhone);

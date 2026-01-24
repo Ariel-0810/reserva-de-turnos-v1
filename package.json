@@ -10,6 +10,7 @@
     "test:email": "tsx scripts/test-email.ts",
     "test:signup": "tsx scripts/test-signup-flow.ts",
     "init:hours": "tsx scripts/init-business-hours.ts",
+    "fix-phones": "tsx scripts/fix-phone-numbers.ts",
     "analyze": "ANALYZE=true next build",
     "optimize": "echo '✅ Optimizaciones aplicadas. Ver OPTIMIZACION.md para próximos pasos'",
     "check": "npm run lint && npm run build"
