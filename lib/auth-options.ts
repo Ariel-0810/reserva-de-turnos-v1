@@ -64,12 +64,22 @@ export const authOptions: NextAuthOptions = {
           where: { userId: user.id },
         });
 
+        // ✅ VERIFICAR SI EL NEGOCIO ESTÁ ACTIVO
+        if (user.role === "BUSINESS_OWNER" && business) {
+          if (!business.isActive) {
+            throw new Error(
+              "Tu negocio ha sido desactivado. Por favor contacta al administrador en g.a.gomez2016@gmail.com para más información."
+            );
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
           businessId: business?.id ?? null,
+          businessIsActive: business?.isActive ?? true, // ✅ Guardar estado del negocio
         };
       },
     }),
@@ -85,6 +95,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.businessId = (user as any).businessId;
+        token.businessIsActive = (user as any).businessIsActive; // ✅ Guardar en token
       }
       return token;
     },
@@ -94,6 +105,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).businessId = token.businessId;
+        (session.user as any).businessIsActive = token.businessIsActive; // ✅ Disponible en sesión
       }
       return session;
     },

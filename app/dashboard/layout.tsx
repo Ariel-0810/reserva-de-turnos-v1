@@ -18,6 +18,15 @@ export default async function DashboardLayout({
     redirect('/admin');
   }
 
+  // ✅ VERIFICAR SI EL NEGOCIO ESTÁ ACTIVO
+  if ((session.user as any)?.role === 'BUSINESS_OWNER') {
+    const businessIsActive = (session.user as any)?.businessIsActive;
+    
+    if (businessIsActive === false) {
+      redirect('/negocio-desactivado');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-app-gradient">
       <DashboardNav user={session.user as any} />
