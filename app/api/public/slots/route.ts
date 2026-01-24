@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// ✅ Caché corto para slots (30 segundos)
+export const revalidate = 30;
 
 import { NextResponse } from 'next/server';
 //import { Service, BusinessHours, Booking, Op } from '@/lib/db';
@@ -37,7 +38,14 @@ export async function GET(request: Request) {
     });
 
     if (!hours || !hours.isOpen) {
-      return NextResponse.json({ slots: [], message: 'Cerrado este día' });
+      return NextResponse.json(
+        { slots: [], message: 'Cerrado este día' },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          },
+        }
+      );
     }
 
     // Get existing bookings for this date
@@ -57,7 +65,15 @@ export async function GET(request: Request) {
       existingBookings.map(b => b.get({ plain: true })) ?? []
     );
 
-    return NextResponse.json({ slots });
+    // ✅ Caché de 30 segundos para slots disponibles
+    return NextResponse.json(
+      { slots },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        },
+      }
+    );
   } catch (error) {
     console.error('GET slots error:', error);
     return NextResponse.json({ error: 'Error al obtener horarios' }, { status: 500 });

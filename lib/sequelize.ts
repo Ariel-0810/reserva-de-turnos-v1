@@ -24,17 +24,23 @@ function getSequelizeInstance(): Sequelize {
     dialect: "postgres",
     dialectModule: pg,
     logging: false,
-    dialectOptions:
-      process.env.NODE_ENV === "production"
-        ? {
-            ssl: { require: true, rejectUnauthorized: false },
-          }
-        : {},
+    pool: {
+      max: 5,        // Máximo de conexiones (importante en Vercel)
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === "production"
+        ? { require: true, rejectUnauthorized: false }
+        : undefined,
+      connectionTimeoutMillis: 10000,  // Timeout de conexión
+      statement_timeout: 5000,          // Timeout de queries
+    },
   });
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForSequelize.sequelize = instance;
-  }
+  // ✅ Cachear instancia también en producción para reutilizar conexiones
+  globalForSequelize.sequelize = instance;
 
   return instance;
 }

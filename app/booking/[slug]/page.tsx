@@ -5,8 +5,37 @@ import { User } from '@/lib/models/User';
 import { initDb } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import { BookingClient } from './_components/booking-client';
+import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+// ✅ ISR: Regenerar cada 60 segundos
+export const revalidate = 60;
+
+// ✅ Generar metadata dinámica para SEO
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  await initDb();
+  const business = await Business.findOne({
+    where: { slug: params.slug, isActive: true },
+  });
+
+  if (!business) {
+    return {
+      title: 'Negocio no encontrado',
+    };
+  }
+
+  return {
+    title: `${business.name} - Reservar turno`,
+    description: business.description || `Reserva tu turno en ${business.name}`,
+    openGraph: {
+      title: business.name,
+      description: business.description || `Reserva tu turno en ${business.name}`,
+    },
+  };
+}
 
 export default async function PublicBookingPage({
   params,

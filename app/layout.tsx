@@ -3,9 +3,11 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/components/providers';
 
-export const dynamic = 'force-dynamic';
-
-const inter = Inter({ subsets: ['latin'] });
+// ✅ Removido force-dynamic para permitir optimizaciones por página
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // ✅ Mejora performance de carga de fuentes
+});
 
 export const metadata: Metadata = {
   title: 'BookingSaaS - Sistema de Reservas para Negocios',
@@ -30,7 +32,12 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <script src="https://apps.abacus.ai/chatllm/appllm-lib.js" />
+        {/* ✅ Preconnect para mejorar carga de recursos externos */}
+        <link rel="preconnect" href="https://apps.abacus.ai" />
+        <link rel="dns-prefetch" href="https://apps.abacus.ai" />
+        
+        {/* ✅ Script cargado de forma async/defer para no bloquear */}
+        <script src="https://apps.abacus.ai/chatllm/appllm-lib.js" async defer />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>{children}</Providers>

@@ -1,4 +1,5 @@
-export const dynamic = "force-dynamic";
+// ✅ Revalidar cada 60 segundos (ISR)
+export const revalidate = 60;
 
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
@@ -34,7 +35,7 @@ export async function GET(
     // ⛔ NO USAR get({ plain: true })
     // ⛔ NO tipar como BusinessAttributes
 
-    return NextResponse.json({
+    const responseData = {
       id: business.id,
       name: business.name,
       description: business.description,
@@ -56,6 +57,13 @@ export async function GET(
         openTime: h.openTime,
         closeTime: h.closeTime,
       })),
+    };
+
+    // ✅ Agregar headers de caché HTTP
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+      },
     });
   } catch (error) {
     console.error("GET public business error:", error);

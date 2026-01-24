@@ -1,0 +1,42 @@
+# ==========================================
+# 🚀 ARCHIVOS IGNORADOS EN DEPLOYMENT VERCEL
+# ==========================================
+# Reduce el tamaño del deployment para builds más rápidos
+
+# Scripts de desarrollo
+scripts/test-*.ts
+scripts/seed.ts
+
+# Archivos de documentación
+*.md
+!README.md
+
+# Archivos de testing
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+
+# Archivos de configuración local
+.env.local
+.env.development
+.env.test
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Misc
+.DS_Store
+Thumbs.db
