@@ -72,9 +72,14 @@ export async function POST(request: Request) {
       name: businessNameToUse,
       slug: slug,
       isActive: true,
+      phone: phone || null, // Guardar teléfono del negocio
+      whatsappNumber: phone || null, // Guardar como WhatsApp automáticamente
     });
 
     console.log("✅ Negocio creado:", slug);
+    if (phone) {
+      console.log("📱 WhatsApp configurado automáticamente:", phone);
+    }
 
     // =====================
     // HORARIOS POR DEFECTO

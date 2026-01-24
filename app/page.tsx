@@ -40,13 +40,13 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors"
+                className="px-5 py-2.5 text-sm font-semibold text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 rounded-xl transition-all duration-200 border border-violet-200 hover:border-violet-300 shadow-sm hover:shadow-md backdrop-blur-sm"
               >
                 Iniciar Sesión
               </Link>
               <Link
                 href="/signup"
-                className="px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors shadow-md hover:shadow-lg"
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Registrarse
               </Link>
@@ -153,10 +153,10 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-gray-200 bg-white/50">
-        <div className="max-w-6xl mx-auto flex flex-col gap-4">
-          
-          {/* Top row */}
+        <div className="max-w-6xl mx-auto">
+          {/* Single row layout - responsive */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Logo y nombre */}
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-white" />
@@ -164,21 +164,19 @@ export default function HomePage() {
               <span className="font-semibold text-gray-900">BookingSaaS</span>
             </div>
 
-            <p className="text-sm text-gray-500 text-center sm:text-right">
-              © 2026 BookingSaaS. Todos los derechos reservados.
-            </p>
-          </div>
-
-          {/* Bottom row */}
-          <div className="text-center">
-            <span className="text-xs text-gray-400">
-              Hecho por{" "}
-              <span className="font-medium text-gray-500 hover:text-gray-700 transition-colors">
+            {/* Centro - Hecho por El Tanke Dev (más destacado) */}
+            <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 rounded-xl border border-violet-200">
+              <span className="text-sm text-gray-600">Hecho por</span>
+              <span className="text-sm font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                 El Tanke Dev 👨‍💻
               </span>
-            </span>
-          </div>
+            </div>
 
+            {/* Copyright */}
+            <p className="text-sm text-gray-500 text-center sm:text-right">
+              © 2026 Todos los derechos reservados.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

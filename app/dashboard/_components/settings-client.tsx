@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Copy, Check, Clock, Building, Save, MessageCircle } from 'lucide-react';
+import { Settings, Copy, Check, Clock, Building, Save } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,6 @@ export function SettingsClient() {
     description: '',
     address: '',
     phone: '',
-    whatsappNumber: '',
     ownerName: '',
     ownerPhone: '',
   });
@@ -60,7 +59,6 @@ export function SettingsClient() {
           description: data?.description ?? '',
           address: data?.address ?? '',
           phone: data?.phone ?? '',
-          whatsappNumber: data?.whatsappNumber ?? '',
           ownerName: data?.user?.name ?? '',
           ownerPhone: data?.user?.phone ?? '',
         });
@@ -300,41 +298,6 @@ export function SettingsClient() {
               <Save className="w-4 h-4 mr-2" /> Guardar cambios
             </Button>
           </form>
-        </CardContent>
-      </Card>
-
-      {/* WhatsApp Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-green-600" /> WhatsApp para Notificaciones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-green-50 rounded-xl p-4 text-sm text-green-800">
-              <p className="font-medium mb-2">📱 ¿Cómo funciona?</p>
-              <p className="text-green-700">
-                Al confirmar o cancelar una reserva, se abrirá WhatsApp en tu teléfono con un mensaje listo para enviar al cliente.
-                Esto te permite notificar a tus clientes directamente desde tu número personal o de negocio.
-              </p>
-            </div>
-            
-            <Input
-              label="Tu número de WhatsApp (con código de país)"
-              placeholder="Ej: 5491112345678"
-              value={formData?.whatsappNumber ?? ''}
-              onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target?.value?.replace(/[^0-9+]/g, '') ?? '' })}
-              icon={<MessageCircle className="w-5 h-5" />}
-            />
-            <p className="text-xs text-gray-500 -mt-2">
-              Ingresa el número sin espacios ni guiones. Ej: Argentina +54 9 11 1234-5678 → 5491112345678
-            </p>
-
-            <Button onClick={handleSaveBusiness} loading={saving}>
-              <Save className="w-4 h-4 mr-2" /> Guardar número de WhatsApp
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

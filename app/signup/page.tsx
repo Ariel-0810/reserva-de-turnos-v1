@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Calendar, Mail, Lock, User, Phone, Building, ArrowLeft, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getPhoneConfig, buildFullPhoneNumber } from '@/lib/phone-prefixes';
 import toast from 'react-hot-toast';
 
 type Step = 'register' | 'verify';
@@ -22,9 +23,12 @@ export default function SignupPage() {
     email: '',
     password: '',
     name: '',
-    phone: '',
+    phone: '', // Solo la parte local sin prefijo
     businessName: '',
   });
+
+  // Argentina fijo - no se puede cambiar
+  const phoneConfig = getPhoneConfig('AR');
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -43,11 +47,21 @@ export default function SignupPage() {
     try {
       console.log('📝 Iniciando registro...');
       
+      // Construir teléfono completo con prefijo de Argentina para WhatsApp
+      const fullPhone = formData.phone 
+        ? buildFullPhoneNumber('AR', formData.phone)
+        : '';
+      
+      console.log('📱 Teléfono completo para WhatsApp:', fullPhone);
+      
       // 1. Create account
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          phone: fullPhone, // Enviar con formato +549...
+        }),
       });
 
       const data = await res.json();
@@ -271,14 +285,35 @@ export default function SignupPage() {
                   required
                 />
 
-                <Input
-                  label="Teléfono (opcional)"
-                  type="tel"
-                  placeholder="11-1234-5678"
-                  value={formData?.phone ?? ''}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target?.value ?? '' })}
-                  icon={<Phone className="w-5 h-5" />}
-                />
+                {/* Teléfono con bandera de Argentina */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Teléfono / WhatsApp (opcional)
+                  </label>
+                  <div className="relative flex items-center">
+                    {/* Bandera y prefijo fijo de Argentina */}
+                    <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
+                      <span className="text-2xl">{phoneConfig.flag}</span>
+                      <span className="text-gray-600 font-medium">{phoneConfig.dialCode}</span>
+                    </div>
+                    
+                    {/* Input para número local */}
+                    <input
+                      type="tel"
+                      placeholder="11 1234 5678"
+                      value={formData?.phone ?? ''}
+                      onChange={(e) => {
+                        // Solo números, formatear automáticamente
+                        const numbers = e.target?.value?.replace(/\D/g, '') ?? '';
+                        setFormData({ ...formData, phone: numbers });
+                      }}
+                      className="w-full pl-28 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Este número se usará para notificaciones de WhatsApp. Ingresa solo los números sin espacios.
+                  </p>
+                </div>
 
                 <Input
                   label="Nombre del negocio"
