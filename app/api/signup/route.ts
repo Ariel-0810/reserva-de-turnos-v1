@@ -111,37 +111,37 @@ export async function POST(request: Request) {
     console.log("✅ Horarios por defecto creados");
 
     // =====================
-    // EMAIL AL SUPERADMIN
+    // EMAIL AL SUPERADMIN (ASYNC - NO ESPERAR)
     // =====================
     const superadminEmail = process.env.SUPERADMIN_EMAIL;
     if (superadminEmail) {
-      try {
-        const registrationDate = new Date().toLocaleString('es-AR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+      // ✅ Enviar email en background sin esperar (Promise.resolve para evitar unhandled rejection)
+      const registrationDate = new Date().toLocaleString('es-AR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
 
-        await sendEmail({
-          to: superadminEmail,
-          subject: `🎉 Nuevo negocio registrado: ${businessNameToUse}`,
-          html: newBusinessRegistrationEmailToSuperadmin({
-            ownerName: name,
-            ownerEmail: email,
-            ownerPhone: phone,
-            businessName: businessNameToUse,
-            businessSlug: slug,
-            registrationDate: registrationDate,
-          }),
-        });
-
+      sendEmail({
+        to: superadminEmail,
+        subject: `🎉 Nuevo negocio registrado: ${businessNameToUse}`,
+        html: newBusinessRegistrationEmailToSuperadmin({
+          ownerName: name,
+          ownerEmail: email,
+          ownerPhone: phone,
+          businessName: businessNameToUse,
+          businessSlug: slug,
+          registrationDate: registrationDate,
+        }),
+      }).then(() => {
         console.log("✅ Email de notificación enviado al superadmin");
-      } catch (emailError) {
+      }).catch((emailError) => {
         console.error("❌ Error al enviar email al superadmin:", emailError);
-        // No fallar el registro si falla el email
-      }
+      });
+      
+      console.log("📧 Email al superadmin enviándose en background...");
     } else {
       console.warn("⚠️  SUPERADMIN_EMAIL no configurado - no se enviará notificación");
     }

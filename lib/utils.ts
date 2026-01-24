@@ -80,16 +80,43 @@ export function generateTimeSlots(
   openTime: string,
   closeTime: string,
   durationMinutes: number,
-  existingBookings: { startTime: string; endTime: string }[]
+  existingBookings: { startTime: string; endTime: string }[],
+  selectedDate?: string // Formato: "YYYY-MM-DD"
 ): { start: string; end: string; available: boolean }[] {
   const slots: { start: string; end: string; available: boolean }[] = [];
   const openMinutes = timeToMinutes(openTime);
   const closeMinutes = timeToMinutes(closeTime);
 
+  // ✅ Detectar si la fecha seleccionada es HOY
+  let minStartTime = openMinutes;
+  if (selectedDate) {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    if (selectedDate === todayStr) {
+      // ✅ Es HOY - calcular hora mínima considerando buffer de tiempo
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      
+      // ✅ Buffer de 30 minutos: el usuario necesita tiempo para confirmar la reserva
+      const bufferMinutes = 30;
+      const minimumStartTime = currentMinutes + bufferMinutes;
+      
+      // ✅ Redondear al próximo slot disponible
+      // Si ahora son las 15:09 + 30min buffer = 15:39
+      // Y los slots son cada 60 min → próximo slot: 16:00
+      // Y los slots son cada 30 min → próximo slot: 16:00 (15:39 redondeado)
+      const nextSlot = Math.ceil(minimumStartTime / durationMinutes) * durationMinutes;
+      minStartTime = Math.max(openMinutes, nextSlot);
+      
+      console.log(`🕐 Reserva para HOY - Hora actual: ${minutesToTime(currentMinutes)}, Mínimo con buffer: ${minutesToTime(minimumStartTime)}, Próximo slot: ${minutesToTime(minStartTime)}`);
+    }
+  }
+
   // ✅ El incremento ahora usa la duración del servicio
   // Si el servicio dura 60 min, los slots serán cada 60 min (9:00, 10:00, 11:00...)
   // Si el servicio dura 30 min, los slots serán cada 30 min (9:00, 9:30, 10:00...)
-  for (let start = openMinutes; start + durationMinutes <= closeMinutes; start += durationMinutes) {
+  for (let start = minStartTime; start + durationMinutes <= closeMinutes; start += durationMinutes) {
     const end = start + durationMinutes;
     const startStr = minutesToTime(start);
     const endStr = minutesToTime(end);

@@ -62,11 +62,13 @@ export async function GET(request: Request) {
       attributes: ['startTime', 'endTime'],
     });
 
+    // ✅ Pasar la fecha seleccionada para filtrar horarios pasados si es HOY
     const slots = generateTimeSlots(
       hours?.openTime ?? '09:00',
       hours?.closeTime ?? '17:00',
       service?.durationMinutes ?? 60,
-      existingBookings.map(b => b.get({ plain: true })) ?? []
+      existingBookings.map(b => b.get({ plain: true })) ?? [],
+      date // ✅ Fecha en formato "YYYY-MM-DD"
     );
 
     // ✅ Caché de 30 segundos para slots disponibles
