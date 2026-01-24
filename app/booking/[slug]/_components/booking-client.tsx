@@ -288,6 +288,11 @@ export function BookingClient({ business }: BookingClientProps) {
     const startOffset = firstDay.getDay();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    // ✅ Límite máximo: 30 días hacia adelante
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + 30);
+    maxDate.setHours(23, 59, 59, 999);
 
     const days: { date: Date; isCurrentMonth: boolean; isDisabled: boolean }[] = [];
 
@@ -301,8 +306,9 @@ export function BookingClient({ business }: BookingClientProps) {
       const dayOfWeek = date.getDay();
       const dayHours = (business?.hours ?? []).find((h) => h?.dayOfWeek === dayOfWeek);
       const isPast = date < today;
+      const isTooFar = date > maxDate; // ✅ Deshabilitar fechas más allá de 30 días
       const isClosed = !dayHours?.isOpen;
-      days.push({ date, isCurrentMonth: true, isDisabled: isPast || isClosed });
+      days.push({ date, isCurrentMonth: true, isDisabled: isPast || isTooFar || isClosed });
     }
 
     const remaining = 42 - days.length;

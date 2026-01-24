@@ -48,10 +48,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get existing bookings for this date
+    // ✅ Get existing bookings for this date AND SERVICE (cada servicio tiene sus propios slots)
     const existingBookings = await Booking.findAll({
       where: {
         businessId,
+        serviceId, // ✅ CRÍTICO: Filtrar por serviceId para que cada servicio tenga slots independientes
         bookingDate: date,
         status: { [Op.in]: ['PENDING', 'CONFIRMED'] },
       },
