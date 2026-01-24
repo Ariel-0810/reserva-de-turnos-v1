@@ -30,7 +30,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Servicio no encontrado' }, { status: 404 });
     }
 
-    const dateObj = new Date(date);
+    // ✅ Fix: Parsear fecha en zona horaria local, no UTC
+    // Antes: new Date('2026-01-26') se interpretaba como UTC, causando problemas de zona horaria
+    const [year, month, day] = date.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day); // month - 1 porque JavaScript usa 0-11
     const dayOfWeek = dateObj.getDay();
 
     const hours = await BusinessHours.findOne({
