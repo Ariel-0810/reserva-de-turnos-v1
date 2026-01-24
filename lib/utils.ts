@@ -89,33 +89,55 @@ export function generateTimeSlots(
 
   // ✅ Detectar si la fecha seleccionada es HOY
   let minStartTime = openMinutes;
+  
   if (selectedDate) {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // ✅ IMPORTANTE: Obtener hora actual en zona horaria de Argentina (America/Argentina/Buenos_Aires)
+    // Vercel servers están en UTC, necesitamos convertir a hora local
+    const now = new Date();
+    
+    // Convertir a hora de Argentina (UTC-3)
+    const argentinaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+    
+    // Crear fecha de hoy en formato YYYY-MM-DD
+    const todayStr = `${argentinaTime.getFullYear()}-${String(argentinaTime.getMonth() + 1).padStart(2, '0')}-${String(argentinaTime.getDate()).padStart(2, '0')}`;
+    
+    console.log(`📅 Fecha seleccionada: ${selectedDate}`);
+    console.log(`📅 Hoy (Argentina): ${todayStr}`);
+    console.log(`📅 ¿Es HOY?: ${selectedDate === todayStr}`);
     
     if (selectedDate === todayStr) {
       // ✅ Es HOY - calcular hora mínima considerando buffer de tiempo
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const currentMinutes = argentinaTime.getHours() * 60 + argentinaTime.getMinutes();
       
       // ✅ Buffer de 30 minutos: el usuario necesita tiempo para confirmar la reserva
       const bufferMinutes = 30;
       const minimumStartTime = currentMinutes + bufferMinutes;
       
-      // ✅ Redondear al próximo slot disponible
-      // Si ahora son las 15:09 + 30min buffer = 15:39
-      // Y los slots son cada 60 min → próximo slot: 16:00
-      // Y los slots son cada 30 min → próximo slot: 16:00 (15:39 redondeado)
-      const nextSlot = Math.ceil(minimumStartTime / durationMinutes) * durationMinutes;
+      // ✅ Calcular cuál es el primer slot que cumple con el tiempo mínimo
+      // Ejemplo: Si son las 15:22 + 30min = 15:52 (952 minutos)
+      // Y el servicio es cada 60 min (slots en minutos: 540, 600, 660, 720, 780, 840, 900, 960...)
+      //                                                 09:00 10:00 11:00 12:00 13:00 14:00 15:00 16:00
+      // Necesitamos encontrar el primer slot >= 952, que es 960 (16:00)
+      
+      let nextSlot = openMinutes;
+      while (nextSlot < minimumStartTime && nextSlot < closeMinutes) {
+        nextSlot += durationMinutes;
+      }
+      
       minStartTime = Math.max(openMinutes, nextSlot);
       
-      console.log(`🕐 Reserva para HOY - Hora actual: ${minutesToTime(currentMinutes)}, Mínimo con buffer: ${minutesToTime(minimumStartTime)}, Próximo slot: ${minutesToTime(minStartTime)}`);
+      console.log(`🕐 Reserva para HOY (Argentina)`);
+      console.log(`   - Hora actual (Argentina): ${minutesToTime(currentMinutes)} (${currentMinutes} min)`);
+      console.log(`   - Hora actual + buffer 30min: ${minutesToTime(minimumStartTime)} (${minimumStartTime} min)`);
+      console.log(`   - Duración servicio: ${durationMinutes} min`);
+      console.log(`   - Horario negocio: ${openTime} (${openMinutes} min) - ${closeTime} (${closeMinutes} min)`);
+      console.log(`   - Primer slot >= mínimo: ${minutesToTime(minStartTime)} (${minStartTime} min)`);
+    } else {
+      console.log(`📅 Reserva para OTRO DÍA - Mostrando todos los horarios desde ${openTime}`);
     }
   }
 
-  // ✅ El incremento ahora usa la duración del servicio
-  // Si el servicio dura 60 min, los slots serán cada 60 min (9:00, 10:00, 11:00...)
-  // Si el servicio dura 30 min, los slots serán cada 30 min (9:00, 9:30, 10:00...)
+  // ✅ Generar slots desde minStartTime hasta closeTime
   for (let start = minStartTime; start + durationMinutes <= closeMinutes; start += durationMinutes) {
     const end = start + durationMinutes;
     const startStr = minutesToTime(start);
@@ -129,6 +151,8 @@ export function generateTimeSlots(
 
     slots.push({ start: startStr, end: endStr, available: !isConflict });
   }
+
+  console.log(`✅ Total de slots generados: ${slots.length}, Primer slot: ${slots[0]?.start || 'ninguno'}, Último slot: ${slots[slots.length - 1]?.start || 'ninguno'}`);
 
   return slots;
 }
