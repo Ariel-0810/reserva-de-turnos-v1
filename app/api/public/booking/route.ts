@@ -130,9 +130,34 @@ export async function POST(request: Request) {
     });
 
     // =====================
-    // SEND EMAIL NOTIFICATION (optional)
+    // SEND EMAIL NOTIFICATION TO BUSINESS OWNER
     // =====================
-    // TODO: Send email to business owner
+    if (owner?.email) {
+      try {
+        const { sendEmail, newBookingEmailToOwner } = await import("@/lib/email");
+        
+        await sendEmail({
+          to: owner.email,
+          subject: `📅 Nueva Reserva en ${business.name}`,
+          html: newBookingEmailToOwner({
+            businessName: business.name,
+            customerName,
+            customerPhone,
+            customerEmail: customerEmail || null,
+            serviceName: service.name,
+            bookingDate: date,
+            startTime,
+            endTime,
+            uniqueId,
+          }),
+        });
+        
+        console.log(`✅ Email de nueva reserva enviado a ${owner.email}`);
+      } catch (emailError) {
+        console.error("❌ Error al enviar email al dueño del negocio:", emailError);
+        // No fallar la reserva si el email falla
+      }
+    }
 
     // =====================
     // RETURN CONFIRMATION
