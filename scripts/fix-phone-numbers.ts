@@ -89,7 +89,7 @@ async function fixPhoneNumbers() {
     
     // 1. Corregir números en Users
     console.log('📱 Corrigiendo números en tabla Users...');
-    const users = await User.findAll({
+    const users: any[] = await User.findAll({
       where: {
         phone: { [Op.ne]: null }
       }
@@ -110,7 +110,7 @@ async function fixPhoneNumbers() {
     
     // 2. Corregir números en Business
     console.log('📱 Corrigiendo números en tabla Business...');
-    const businesses = await Business.findAll();
+    const businesses: any[] = await Business.findAll();
     
     let businessesFixed = 0;
     for (const business of businesses) {
@@ -146,7 +146,7 @@ async function fixPhoneNumbers() {
     
     // 3. Corregir números en Bookings
     console.log('📱 Corrigiendo números en tabla Bookings...');
-    const bookings = await Booking.findAll({
+    const bookings: any[] = await Booking.findAll({
       where: {
         customerPhone: { [Op.ne]: null }
       }
