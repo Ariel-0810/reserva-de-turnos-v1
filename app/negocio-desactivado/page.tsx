@@ -4,6 +4,9 @@ import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Mail, LogOut, ArrowLeft } from 'lucide-react';
 
+// ✅ Forzar renderizado dinámico (no pre-render durante build)
+export const dynamic = 'force-dynamic';
+
 export default function NegocioDesactivadoPage() {
   const router = useRouter();
   const { data: session, status } = useSession();

@@ -78,9 +78,13 @@ if (result?.error) {
 - ✅ Detecta si el usuario está logueado o no
 - ✅ Muestra "Cerrar Sesión" si está logueado
 - ✅ Muestra "Volver al Login" si NO está logueado
+- ✅ **IMPORTANTE:** Usa `export const dynamic = 'force-dynamic'` para evitar pre-rendering
 
 **Código:**
 ```typescript
+// ✅ Forzar renderizado dinámico (no pre-render durante build)
+export const dynamic = 'force-dynamic';
+
 const { data: session, status } = useSession();
 const isLoggedIn = status === 'authenticated';
 
@@ -96,6 +100,7 @@ const isLoggedIn = status === 'authenticated';
 - ✅ Funciona para ambos casos
 - ✅ UX apropiado según estado
 - ✅ Página pública (no requiere auth)
+- ✅ No falla durante el build de Vercel
 
 ---
 
