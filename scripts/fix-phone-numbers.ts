@@ -11,6 +11,11 @@
  * Uso: npm run fix-phones
  */
 
+// ✅ Cargar variables de entorno ANTES de cualquier import
+import { config } from 'dotenv';
+import { resolve } from 'path';
+config({ path: resolve(__dirname, '../.env') });
+
 import { initDb } from '../lib/db';
 import { User } from '../lib/models/User';
 import { Business } from '../lib/models/Business';
