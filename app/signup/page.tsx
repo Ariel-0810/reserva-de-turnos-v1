@@ -149,9 +149,9 @@ export default function SignupPage() {
       });
 
       if (loginResult?.ok) {
-        console.log('✅ Login exitoso, redirigiendo a dashboard');
-        toast.success('¡Bienvenido! Redirigiendo...');
-        router.push('/dashboard');
+        console.log('✅ Login exitoso, redirigiendo a servicios');
+        toast.success('¡Bienvenido! Configura tus servicios para comenzar...');
+        router.push('/dashboard/services');
       } else {
         console.error('❌ Error en login automático:', loginResult?.error);
         toast.error('Por favor inicia sesión manualmente');
@@ -288,7 +288,7 @@ export default function SignupPage() {
                 {/* Teléfono con bandera de Argentina */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Teléfono / WhatsApp (opcional)
+                    Teléfono / WhatsApp
                   </label>
                   <div className="relative flex items-center">
                     {/* Bandera y prefijo fijo de Argentina */}

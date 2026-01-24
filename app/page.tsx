@@ -168,8 +168,9 @@ export default function HomePage() {
             <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 rounded-xl border border-violet-200">
               <span className="text-sm text-gray-600">Hecho por</span>
               <span className="text-sm font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-                El Tanke Dev 👨‍💻
+                El Tanke Dev 
               </span>
+                👨‍💻
             </div>
 
             {/* Copyright */}
