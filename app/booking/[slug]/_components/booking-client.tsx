@@ -82,6 +82,9 @@ export function BookingClient({ business }: BookingClientProps) {
   // WhatsApp modal for cancelled booking notification
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [cancelledBookingData, setCancelledBookingData] = useState<any>(null);
+  
+  // Confirm cancellation modal
+  const [confirmCancelModalOpen, setConfirmCancelModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -217,9 +220,14 @@ export function BookingClient({ business }: BookingClientProps) {
     }
   };
 
+  const openCancelConfirmation = () => {
+    setConfirmCancelModalOpen(true);
+  };
+
   const cancelBooking = async () => {
     if (!searchResult?.uniqueId) return;
-    if (!confirm('¿Estás seguro de cancelar esta reserva?')) return;
+    
+    setConfirmCancelModalOpen(false);
 
     // Save booking data before cancelling (for WhatsApp message)
     const bookingDataForWhatsApp = {
@@ -241,7 +249,7 @@ export function BookingClient({ business }: BookingClientProps) {
       });
 
       if (!res.ok) throw new Error();
-      toast.success('Reserva cancelada');
+      toast.success('Reserva cancelada exitosamente');
       setSearchModalOpen(false);
       setSearchResult(null);
       setSearchId('');
@@ -724,12 +732,63 @@ export function BookingClient({ business }: BookingClientProps) {
             </div>
 
             {(searchResult?.status === 'PENDING' || searchResult?.status === 'CONFIRMED') && (
-              <Button variant="danger" className="w-full" onClick={cancelBooking}>
+              <Button variant="danger" className="w-full" onClick={openCancelConfirmation}>
                 <X className="w-4 h-4 mr-2" /> Cancelar reserva
               </Button>
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Confirm cancellation modal */}
+      <Modal
+        isOpen={confirmCancelModalOpen}
+        onClose={() => setConfirmCancelModalOpen(false)}
+        title="Confirmar cancelación"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+              <X className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-900 font-medium mb-2">
+                ¿Estás seguro de cancelar esta reserva?
+              </p>
+              <p className="text-gray-600 text-sm">
+                Esta acción no se puede deshacer. Se notificará al negocio sobre la cancelación.
+              </p>
+            </div>
+          </div>
+
+          {searchResult && (
+            <div className="bg-red-50 rounded-xl p-4 space-y-1 text-sm border border-red-200">
+              <p><strong>ID:</strong> #{searchResult?.uniqueId}</p>
+              <p><strong>Servicio:</strong> {searchResult?.service?.name}</p>
+              <p><strong>Fecha:</strong> {formatDate(searchResult?.bookingDate)}</p>
+              <p><strong>Horario:</strong> {searchResult?.startTime} - {searchResult?.endTime}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setConfirmCancelModalOpen(false)}
+            >
+              No, mantener reserva
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={cancelBooking}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Sí, cancelar
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* WhatsApp notification modal after cancellation */}
