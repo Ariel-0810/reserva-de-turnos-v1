@@ -42,7 +42,16 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error(result.error || 'Error al iniciar sesión');
+        // ✅ Detectar si es error de negocio desactivado
+        if (result.error.includes('desactivado')) {
+          toast.error(result.error);
+          // Redirigir a página informativa después de 2 segundos
+          setTimeout(() => {
+            router.push('/negocio-desactivado');
+          }, 2000);
+        } else {
+          toast.error(result.error || 'Error al iniciar sesión');
+        }
       } else {
         toast.success('¡Bienvenido!');
         router.replace('/dashboard');

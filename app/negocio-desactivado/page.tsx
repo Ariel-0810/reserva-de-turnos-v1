@@ -1,14 +1,20 @@
 'use client';
 
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Mail, LogOut } from 'lucide-react';
+import { AlertTriangle, Mail, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function NegocioDesactivadoPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === 'authenticated';
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
+    router.push('/login');
+  };
+
+  const handleBackToLogin = () => {
     router.push('/login');
   };
 
@@ -75,14 +81,24 @@ export default function NegocioDesactivadoPage() {
               Enviar Email al Administrador
             </a>
 
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </button>
+            {/* Logout/Back Button */}
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </button>
+            ) : (
+              <button
+                onClick={handleBackToLogin}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver al Login
+              </button>
+            )}
           </div>
 
           {/* Footer Note */}
