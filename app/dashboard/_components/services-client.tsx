@@ -125,10 +125,10 @@ export function ServicesClient() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={fetchServices} variant="secondary" size="sm">
+          <Button className="rounded-full shadow-sm" onClick={fetchServices} variant="secondary" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" /> Actualizar
           </Button>
-          <Button onClick={() => openModal()} size="sm">
+          <Button className="rounded-full shadow-sm" onClick={() => openModal()} size="sm">
             <Plus className="w-4 h-4 mr-2" /> Agregar Servicio
           </Button>
         </div>
@@ -198,6 +198,7 @@ export function ServicesClient() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
+            className="rounded-xl shadow-sm"
             label="Nombre del servicio"
             value={formData?.name ?? ''}
             onChange={(e) => setFormData({ ...formData, name: e.target?.value ?? '' })}
@@ -206,6 +207,7 @@ export function ServicesClient() {
           />
 
           <Textarea
+            className="rounded-xl shadow-sm"
             label="Descripción (opcional)"
             value={formData?.description ?? ''}
             onChange={(e) => setFormData({ ...formData, description: e.target?.value ?? '' })}
@@ -215,6 +217,7 @@ export function ServicesClient() {
 
           <div className="grid grid-cols-2 gap-4">
             <Input
+              className="rounded-xl shadow-sm"
               label="Duración (minutos)"
               type="number"
               value={formData?.durationMinutes ?? '60'}
@@ -225,6 +228,7 @@ export function ServicesClient() {
             />
 
             <Input
+              className="rounded-xl shadow-sm"
               label="Precio"
               type="number"
               value={formData?.price ?? ''}
@@ -244,11 +248,11 @@ export function ServicesClient() {
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button type="button" variant="secondary" className="flex-1" onClick={() => setModalOpen(false)}>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Button type="button" variant="secondary" className="flex-1 rounded-xl" onClick={() => setModalOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1" loading={saving}>
+            <Button type="submit" className="flex-1 rounded-xl" loading={saving}>
               {editingService ? 'Guardar cambios' : 'Crear servicio'}
             </Button>
           </div>

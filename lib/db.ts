@@ -11,11 +11,14 @@ import { Account } from "./models/Account";
 import { Session } from "./models/Session";
 import { EmailVerification } from "./models/EmailVerification";
 import { SystemConfig } from "./models/SystemConfig";
+import { Subscription } from "./models/Subscription";
+import { Payment } from "./models/Payment";
+import { RecurringBlock } from "./models/RecurringBlock";
 
 // Export everything
 export { sequelize };
 export { Op };
-export { User, Business, Service, Booking, BusinessHours, Account, Session, EmailVerification, SystemConfig };
+export { User, Business, Service, Booking, BusinessHours, Account, Session, EmailVerification, SystemConfig, Subscription, Payment, RecurringBlock };
 
 let initialized = false;
 

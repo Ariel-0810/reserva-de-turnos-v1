@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { Service } from '@/lib/models/Service';
 import { BusinessHours } from '@/lib/models/BusinessHours';
 import { Booking } from '@/lib/models/Booking';
+import { RecurringBlock } from '@/lib/models/RecurringBlock';
 import { Op } from 'sequelize';
 import { initDb } from '@/lib/db';
 import { generateTimeSlots } from '@/lib/utils';
@@ -62,21 +63,41 @@ export async function GET(request: Request) {
       attributes: ['startTime', 'endTime'],
     });
 
+    // ✅ Bloques recurrentes que aplican a este día y servicio (Feature 19)
+    const recurringBlocks = await RecurringBlock.findAll({
+      where: {
+        businessId,
+        dayOfWeek,
+        isActive: true,
+        [Op.or]: [{ serviceId: null }, { serviceId }],
+        [Op.and]: [
+          { [Op.or]: [{ startDate: null }, { startDate: { [Op.lte]: date } }] },
+          { [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: date } }] },
+        ],
+      },
+      attributes: ['startTime', 'endTime'],
+    });
+
+    const occupiedIntervals = [
+      ...existingBookings.map((b) => b.get({ plain: true })),
+      ...recurringBlocks.map((r) => r.get({ plain: true })),
+    ];
+
     // ✅ Pasar la fecha seleccionada para filtrar horarios pasados si es HOY
     const slots = generateTimeSlots(
       hours?.openTime ?? '09:00',
       hours?.closeTime ?? '17:00',
       service?.durationMinutes ?? 60,
-      existingBookings.map(b => b.get({ plain: true })) ?? [],
+      occupiedIntervals,
       date // ✅ Fecha en formato "YYYY-MM-DD"
     );
 
-    // ✅ Caché de 30 segundos para slots disponibles
+    // ✅ Caché reducido a 10s para que los cambios en bloques recurrentes se reflejen rápido
     return NextResponse.json(
       { slots },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
         },
       }
     );

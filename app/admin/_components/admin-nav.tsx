@@ -13,6 +13,8 @@ import {
   Menu,
   X,
   ClipboardList,
+  CreditCard,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,8 @@ const navItems = [
   { href: '/admin', label: 'Estadísticas', icon: BarChart3 },
   { href: '/admin/businesses', label: 'Negocios', icon: Building2 },
   { href: '/admin/bookings', label: 'Reservas', icon: ClipboardList },
+  { href: '/admin/subscriptions', label: 'Suscripciones', icon: CreditCard },
+  { href: '/admin/payments', label: 'Pagos', icon: Receipt },
   { href: '/admin/integrations', label: 'Integraciones', icon: Settings },
 ];
 

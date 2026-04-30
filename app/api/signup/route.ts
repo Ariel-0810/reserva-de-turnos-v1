@@ -5,6 +5,8 @@ import { initDb } from "@/lib/db";
 import { User } from "@/lib/models/User";
 import { Business } from "@/lib/models/Business";
 import { BusinessHours } from "@/lib/models/BusinessHours";
+import { Subscription } from "@/lib/models/Subscription";
+import { SystemConfig } from "@/lib/models/SystemConfig";
 import { sendEmail, newBusinessRegistrationEmailToSuperadmin } from "@/lib/email";
 
 function generateSlug(name: string): string {
@@ -30,6 +32,16 @@ export async function POST(request: Request) {
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Datos incompletos" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      password.length < 8 ||
+      !/[\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)
+    ) {
+      return NextResponse.json(
+        { error: "La contraseña debe tener al menos 8 caracteres y un número o símbolo." },
         { status: 400 }
       );
     }
@@ -109,6 +121,25 @@ export async function POST(request: Request) {
     );
 
     console.log("✅ Horarios por defecto creados");
+
+    // =====================
+    // SUSCRIPCIÓN TRIAL (7 días)
+    // =====================
+    try {
+      const priceConfig = await SystemConfig.findOne({ where: { key: "plan.defaultPrice" } });
+      const monthlyPrice = parseFloat(priceConfig?.value ?? "5000");
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+      await Subscription.create({
+        businessId: business.id,
+        status: "TRIAL",
+        monthlyPrice,
+        trialEndsAt,
+      });
+      console.log("✅ Subscription TRIAL creada (vence:", trialEndsAt.toISOString(), ")");
+    } catch (subErr) {
+      console.error("⚠️  No se pudo crear Subscription TRIAL:", subErr);
+    }
 
     // =====================
     // EMAIL AL SUPERADMIN (ASYNC - NO ESPERAR)

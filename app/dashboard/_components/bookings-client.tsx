@@ -1,20 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ClipboardList, Eye, Check, X, RefreshCw, Search, MessageCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { ClipboardList, Eye, Check, X, RefreshCw, Search, MessageCircle, Filter, Bell, BellOff } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
-import { formatShortDate, formatDate } from '@/lib/utils';
-import { STATUS_LABELS, STATUS_COLORS, BookingStatus } from '@/lib/types';
-import { 
-  generateWhatsAppLink, 
-  getWhatsAppConfirmationMessage, 
+import { formatShortDate, formatDate, timeAgo, playBeep } from '@/lib/utils';
+import { STATUS_LABELS, BookingStatus } from '@/lib/types';
+import {
+  generateWhatsAppLink,
+  getWhatsAppConfirmationMessage,
   getWhatsAppCancellationMessage,
-  WhatsAppBookingParams 
+  WhatsAppBookingParams,
 } from '@/lib/whatsapp';
 import toast from 'react-hot-toast';
+
+interface BookingService {
+  id: string;
+  name: string;
+  price: string;
+}
 
 interface Booking {
   id: string;
@@ -26,7 +32,8 @@ interface Booking {
   startTime: string;
   endTime: string;
   status: BookingStatus;
-  service?: { name: string; price: string } | null;
+  createdAt: string;
+  service?: BookingService | null;
 }
 
 interface BusinessInfo {
@@ -35,22 +42,39 @@ interface BusinessInfo {
   whatsappNumber?: string | null;
 }
 
-const statusFilters = [
+interface ServiceItem {
+  id: string;
+  name: string;
+}
+
+const statusFilters: { value: BookingStatus | 'all'; label: string }[] = [
   { value: 'PENDING', label: 'Pendientes' },
   { value: 'CONFIRMED', label: 'Confirmadas' },
   { value: 'CANCELLED', label: 'Canceladas' },
   { value: 'all', label: 'Todas' },
 ];
 
+const LAST_SEEN_KEY = 'bookingsLastSeenAt';
+
 export function BookingsClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('PENDING');
+  const [filter, setFilter] = useState<BookingStatus | 'all'>('PENDING');
+  const [serviceFilter, setServiceFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [pendingWhatsApp, setPendingWhatsApp] = useState<{ booking: Booking; status: 'CONFIRMED' | 'CANCELLED' } | null>(null);
+  const [lastSeenAt, setLastSeenAt] = useState<number>(0);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef<boolean>(false);
+  const notifPermissionRef = useRef<NotificationPermission>('default');
 
   const fetchBusinessInfo = async () => {
     try {
@@ -68,27 +92,157 @@ export function BookingsClient() {
     }
   };
 
-  const fetchBookings = async () => {
-    setLoading(true);
+  const fetchServices = async () => {
     try {
-      const res = await fetch(`/api/bookings?status=${filter}`);
+      const res = await fetch('/api/services');
       const data = await res.json();
-      setBookings(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setServices(data.map((s: any) => ({ id: s.id, name: s.name })));
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchBookings = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await fetch(`/api/bookings?status=all`);
+      const data = await res.json();
+      const list: Booking[] = Array.isArray(data) ? data : [];
+
+      // Detectar reservas nuevas (PENDING) en fetches subsiguientes
+      if (initializedRef.current) {
+        const newPending = list.filter(
+          (b) => b.status === 'PENDING' && !seenIdsRef.current.has(b.id)
+        );
+        if (newPending.length > 0) {
+          const count = newPending.length;
+          toast.success(
+            count === 1 ? '1 reserva nueva' : `${count} reservas nuevas`,
+            { icon: '🔔' }
+          );
+          playBeep();
+
+          if (notifPermissionRef.current === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
+            try {
+              const first = newPending[0];
+              const body =
+                count === 1
+                  ? `${first.customerName} • ${first.service?.name ?? ''} • ${first.startTime}`
+                  : `Tenés ${count} reservas pendientes nuevas.`;
+              new Notification('Reserva nueva', { body, icon: '/favicon.svg' });
+            } catch {
+              // ignorar fallos de Notification
+            }
+          }
+        }
+      } else {
+        initializedRef.current = true;
+      }
+
+      // Actualizar set de IDs vistos
+      seenIdsRef.current = new Set(list.map((b) => b.id));
+      setBookings(list);
     } catch (error) {
       console.error(error);
-      toast.error('Error al cargar reservas');
+      if (!silent) toast.error('Error al cargar reservas');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBusinessInfo();
+    fetchServices();
+    fetchBookings();
+
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem(LAST_SEEN_KEY) : null;
+    setLastSeenAt(stored ? Number(stored) : 0);
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const perm = Notification.permission;
+      setNotifPermission(perm);
+      notifPermissionRef.current = perm;
+    }
+
+    // Polling cada 30s
+    const interval = setInterval(() => {
+      fetchBookings(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [filter]);
+  const requestNotifPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      toast.error('Tu navegador no soporta notificaciones.');
+      return;
+    }
+    try {
+      const result = await Notification.requestPermission();
+      setNotifPermission(result);
+      notifPermissionRef.current = result;
+      if (result === 'granted') {
+        playBeep(); // gesture válido → habilita audio en lo sucesivo
+        toast.success('Notificaciones activadas');
+      } else if (result === 'denied') {
+        toast.error('Notificaciones bloqueadas en el navegador');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Contadores por status (sobre la lista completa, ignorando otros filtros)
+  const counts = useMemo(() => {
+    const c = { PENDING: 0, CONFIRMED: 0, CANCELLED: 0, all: bookings.length };
+    for (const b of bookings) {
+      if (b.status in c) (c as any)[b.status] += 1;
+    }
+    return c as { PENDING: number; CONFIRMED: number; CANCELLED: number; all: number };
+  }, [bookings]);
+
+  // Reservas pendientes nuevas desde la última vez que el dueño miró el dashboard
+  const unseenCount = useMemo(() => {
+    if (!lastSeenAt) return 0;
+    return bookings.filter(
+      (b) => b.status === 'PENDING' && new Date(b.createdAt).getTime() > lastSeenAt
+    ).length;
+  }, [bookings, lastSeenAt]);
+
+  const markAsSeen = () => {
+    const now = Date.now();
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LAST_SEEN_KEY, String(now));
+    }
+    setLastSeenAt(now);
+  };
+
+  const filteredBookings = useMemo(() => {
+    const search = searchQuery.trim().toLowerCase();
+    const fromTs = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : null;
+    const toTs = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : null;
+
+    return bookings.filter((b) => {
+      if (filter !== 'all' && b.status !== filter) return false;
+      if (serviceFilter !== 'all' && b.service?.id !== serviceFilter) return false;
+
+      if (search) {
+        const name = (b.customerName ?? '').toLowerCase();
+        const phone = (b.customerPhone ?? '').toLowerCase();
+        if (!name.includes(search) && !phone.includes(search)) return false;
+      }
+
+      if (fromTs || toTs) {
+        const bDate = new Date(b.bookingDate.split('T')[0] + 'T00:00:00').getTime();
+        if (fromTs && bDate < fromTs) return false;
+        if (toTs && bDate > toTs) return false;
+      }
+
+      return true;
+    });
+  }, [bookings, filter, serviceFilter, searchQuery, dateFrom, dateTo]);
 
   const getPublicBookingUrl = () => {
     if (typeof window === 'undefined' || !businessInfo?.slug) return '';
@@ -113,7 +267,7 @@ export function BookingsClient() {
       publicBookingUrl: getPublicBookingUrl(),
     };
 
-    const message = status === 'CONFIRMED' 
+    const message = status === 'CONFIRMED'
       ? getWhatsAppConfirmationMessage(params)
       : getWhatsAppCancellationMessage(params);
 
@@ -133,14 +287,13 @@ export function BookingsClient() {
       if (!res.ok) throw new Error();
 
       toast.success(status === 'CONFIRMED' ? 'Reserva confirmada' : 'Reserva cancelada');
-      
-      // If we have the booking data and customer phone, show WhatsApp modal
+
       const targetBooking = booking ?? selectedBooking;
       if (targetBooking?.customerPhone) {
         setPendingWhatsApp({ booking: targetBooking, status });
         setWhatsappModalOpen(true);
       }
-      
+
       setSelectedBooking(null);
       fetchBookings();
     } catch (error) {
@@ -163,6 +316,16 @@ export function BookingsClient() {
     return <Badge variant={variant}>{STATUS_LABELS[status] ?? status}</Badge>;
   };
 
+  const clearAllFilters = () => {
+    setServiceFilter('all');
+    setSearchQuery('');
+    setDateFrom('');
+    setDateTo('');
+  };
+
+  const hasExtraFilters =
+    serviceFilter !== 'all' || searchQuery.trim() !== '' || dateFrom !== '' || dateTo !== '';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -171,45 +334,162 @@ export function BookingsClient() {
             <ClipboardList className="w-5 h-5 text-violet-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
+              {unseenCount > 0 && (
+                <button
+                  onClick={() => {
+                    setFilter('PENDING');
+                    markAsSeen();
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-violet-600 text-white shadow-sm hover:bg-violet-700"
+                  title="Reservas pendientes nuevas desde tu última visita"
+                >
+                  {unseenCount} nueva{unseenCount === 1 ? '' : 's'}
+                </button>
+              )}
+            </div>
             <p className="text-sm text-gray-500">Gestiona las reservas de tu negocio</p>
           </div>
         </div>
-        <Button onClick={fetchBookings} variant="secondary" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" /> Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          {notifPermission === 'default' && (
+            <Button className="rounded-full shadow-sm" onClick={requestNotifPermission} variant="secondary" size="sm">
+              <Bell className="w-4 h-4 mr-2" /> Activar notificaciones
+            </Button>
+          )}
+          {notifPermission === 'granted' && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full shadow-sm border border-green-200"
+              title="Te avisaremos cuando llegue una reserva nueva"
+            >
+              <Bell className="w-3 h-3" /> Notif. activas
+            </span>
+          )}
+          {notifPermission === 'denied' && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-xl border border-gray-200"
+              title="Habilitalas desde la configuración del navegador"
+            >
+              <BellOff className="w-3 h-3" /> Notif. bloqueadas
+            </span>
+          )}
+          <Button className="rounded-full shadow-sm" onClick={() => fetchBookings()} variant="secondary" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" /> Actualizar
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
+      {/* Status tabs con contador */}
       <div className="flex flex-wrap gap-2">
-        {statusFilters.map((f) => (
-          <button
-            key={f?.value}
-            onClick={() => setFilter(f?.value ?? 'all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filter === f?.value
-                ? 'bg-violet-600 text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-            }`}
-          >
-            {f?.label}
-          </button>
-        ))}
+        {statusFilters.map((f) => {
+          const count = counts[f.value];
+          const isActive = filter === f.value;
+          return (
+            <button
+              key={f.value}
+              onClick={() => {
+                setFilter(f.value);
+                markAsSeen();
+              }}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+                isActive
+                  ? 'bg-violet-600 text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              <span>{f.label}</span>
+              <span
+                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* Filtros avanzados */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Buscador */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre o teléfono"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              />
+            </div>
+
+            {/* Filtro servicio */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <select
+                value={serviceFilter}
+                onChange={(e) => setServiceFilter(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              >
+                <option value="all">Todos los servicios</option>
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Rango fechas */}
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              aria-label="Desde"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              aria-label="Hasta"
+            />
+          </div>
+
+          {hasExtraFilters && (
+            <div className="flex items-center justify-between text-xs text-gray-600">
+              <span>
+                Mostrando {filteredBookings.length} de {bookings.length} reservas
+              </span>
+              <button
+                onClick={clearAllFilters}
+                className="text-violet-600 hover:text-violet-700 font-medium"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Bookings List */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-gray-500">Cargando reservas...</div>
-          ) : (bookings?.length ?? 0) === 0 ? (
+          ) : filteredBookings.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No hay reservas {filter !== 'all' ? STATUS_LABELS[filter as BookingStatus]?.toLowerCase() : ''}</p>
+              <p>No hay reservas que coincidan con los filtros aplicados.</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {(bookings ?? []).map((booking) => (
+              {filteredBookings.map((booking) => (
                 <div
                   key={booking?.id}
                   className="p-4 sm:p-5 hover:bg-gray-50 transition-colors"
@@ -221,6 +501,11 @@ export function BookingsClient() {
                           #{booking?.uniqueId}
                         </span>
                         {getStatusBadge(booking?.status)}
+                        {booking?.createdAt && (
+                          <span className="text-xs text-gray-400">
+                            creada {timeAgo(booking.createdAt)}
+                          </span>
+                        )}
                       </div>
                       <h3 className="font-semibold text-gray-900 mt-2">{booking?.customerName}</h3>
                       <p className="text-sm text-gray-600">
@@ -238,6 +523,7 @@ export function BookingsClient() {
                       {booking?.status === 'PENDING' && (
                         <>
                           <Button
+                          className="rounded-full shadow-sm"
                             variant="primary"
                             size="sm"
                             onClick={() => handleAction(booking?.id, 'CONFIRMED', booking)}
@@ -245,6 +531,7 @@ export function BookingsClient() {
                             <Check className="w-4 h-4 mr-1" /> Confirmar
                           </Button>
                           <Button
+                          className="rounded-full shadow-sm"
                             variant="danger"
                             size="sm"
                             onClick={() => handleAction(booking?.id, 'CANCELLED', booking)}
@@ -274,6 +561,11 @@ export function BookingsClient() {
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm bg-gray-100 px-3 py-1 rounded">#{selectedBooking?.uniqueId}</span>
               {getStatusBadge(selectedBooking?.status)}
+              {selectedBooking?.createdAt && (
+                <span className="text-xs text-gray-500">
+                  creada {timeAgo(selectedBooking.createdAt)}
+                </span>
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
@@ -311,9 +603,9 @@ export function BookingsClient() {
             </div>
 
             {selectedBooking?.status === 'PENDING' && (
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button
-                  className="flex-1"
+                  className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => handleAction(selectedBooking?.id, 'CONFIRMED', selectedBooking)}
                   loading={actionLoading}
                 >
@@ -321,7 +613,7 @@ export function BookingsClient() {
                 </Button>
                 <Button
                   variant="danger"
-                  className="flex-1"
+                  className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white"
                   onClick={() => handleAction(selectedBooking?.id, 'CANCELLED', selectedBooking)}
                   loading={actionLoading}
                 >
@@ -350,8 +642,8 @@ export function BookingsClient() {
             </div>
             <div>
               <p className="font-medium text-gray-900">
-                {pendingWhatsApp?.status === 'CONFIRMED' 
-                  ? '¡Reserva confirmada!' 
+                {pendingWhatsApp?.status === 'CONFIRMED'
+                  ? '¡Reserva confirmada!'
                   : 'Reserva cancelada'}
               </p>
               <p className="text-sm text-gray-600">
@@ -368,8 +660,8 @@ export function BookingsClient() {
             <Button onClick={handleSendWhatsApp} className="flex-1 bg-green-600 hover:bg-green-700">
               <MessageCircle className="w-4 h-4 mr-2" /> Enviar WhatsApp
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setWhatsappModalOpen(false);
                 setPendingWhatsApp(null);

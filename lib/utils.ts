@@ -57,6 +57,43 @@ export function formatShortDate(date: Date | string): string {
   });
 }
 
+let beepCtx: AudioContext | null = null;
+export function playBeep() {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!beepCtx) {
+      const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+      beepCtx = new Ctx();
+    }
+    const o = beepCtx.createOscillator();
+    const g = beepCtx.createGain();
+    o.connect(g);
+    g.connect(beepCtx.destination);
+    o.type = 'sine';
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, beepCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.2, beepCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, beepCtx.currentTime + 0.4);
+    o.start();
+    o.stop(beepCtx.currentTime + 0.4);
+  } catch {
+    // autoplay policy o sin audio device — ignorar
+  }
+}
+
+export function timeAgo(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const diffSec = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+  if (diffSec < 60) return 'hace unos segundos';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `hace ${diffHr} h`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 7) return `hace ${diffDay} d`;
+  return formatShortDate(d);
+}
+
 export function formatPrice(price: number | string): string {
   const num = typeof price === 'string' ? parseFloat(price) : price;
   return new Intl.NumberFormat('es-AR', {

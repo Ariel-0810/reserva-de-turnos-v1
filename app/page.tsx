@@ -63,7 +63,7 @@ export default function HomePage() {
               Gestiona las reservas de tu negocio de forma <span className="text-violet-600">simple</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              Ideal para canchas de fútbol, peluquerías, consultorios y cualquier negocio que trabaje con turnos.
+              Ideal para canchas de fútbol, pádel, barberías y peluquerías.
             </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -177,6 +177,13 @@ export default function HomePage() {
             <p className="text-sm text-gray-500 text-center sm:text-right">
               © 2026 Todos los derechos reservados.
             </p>
+          </div>
+
+          {/* Legal links */}
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
+            <Link href="/privacidad" className="hover:text-gray-700">Política de Privacidad</Link>
+            <span>·</span>
+            <Link href="/terminos" className="hover:text-gray-700">Términos y Condiciones</Link>
           </div>
         </div>
       </footer>

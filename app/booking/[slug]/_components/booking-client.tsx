@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ArrowLeft,
   ChevronDown,
+  Share2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -337,6 +338,34 @@ export function BookingClient({ business }: BookingClientProps) {
     setFormData({ customerName: '', customerPhone: '', customerEmail: '' });
   };
 
+  const handleShareBooking = async () => {
+    if (!confirmation) return;
+
+    const shareText =
+      `🗓️ Reserva en ${confirmation.businessName}\n\n` +
+      `• Servicio: ${confirmation.serviceName}\n` +
+      `• Fecha: ${formatDate(confirmation.date)}\n` +
+      `• Horario: ${confirmation.startTime} - ${confirmation.endTime}\n` +
+      `• ID: ${confirmation.uniqueId}\n\n` +
+      `¡Nos vemos!`;
+
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({
+          title: `Reserva en ${confirmation.businessName}`,
+          text: shareText,
+        });
+        return;
+      } catch (err) {
+        // El usuario canceló el share o falló — caer al fallback
+      }
+    }
+
+    // Fallback: abrir WhatsApp con el mensaje listo (sin destinatario, lo elige el usuario)
+    const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-app-gradient">
       {/* Header */}
@@ -406,7 +435,7 @@ export function BookingClient({ business }: BookingClientProps) {
                 <div className="space-y-2 text-sm">
                   <p><strong>Negocio:</strong> {confirmation?.businessName}</p>
                   <p><strong>Servicio:</strong> {confirmation?.serviceName}</p>
-                  <p><strong>Fecha:</strong> {confirmation?.date}</p>
+                  <p><strong>Fecha:</strong> {formatDate(confirmation?.date)}</p>
                   <p><strong>Horario:</strong> {confirmation?.startTime} - {confirmation?.endTime}</p>
                   <p><strong>Cliente:</strong> {confirmation?.customerName}</p>
                 </div>
@@ -416,9 +445,14 @@ export function BookingClient({ business }: BookingClientProps) {
                 Guarda tu ID de reserva para consultar o cancelar.
               </p>
 
-              <Button onClick={resetBooking} variant="outline">
-                Hacer otra reserva
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={handleShareBooking} className="bg-green-600 hover:bg-green-700">
+                  <Share2 className="w-4 h-4 mr-2" /> Compartir esta reserva
+                </Button>
+                <Button onClick={resetBooking} variant="outline">
+                  Hacer otra reserva
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (

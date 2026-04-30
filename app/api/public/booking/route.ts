@@ -9,6 +9,7 @@ import { Booking } from "@/lib/models/Booking";
 import { Service } from "@/lib/models/Service";
 import { BusinessHours } from "@/lib/models/BusinessHours";
 import { User } from "@/lib/models/User";
+import { RecurringBlock } from "@/lib/models/RecurringBlock";
 
 export async function POST(request: Request) {
   try {
@@ -99,6 +100,34 @@ export async function POST(request: Request) {
     });
 
     if (existingBooking) {
+      return NextResponse.json(
+        { error: "Horario no disponible" },
+        { status: 400 }
+      );
+    }
+
+    // =====================
+    // CHECK RECURRING BLOCKS (Feature 19)
+    // =====================
+    const [bYear, bMonth, bDay] = String(date).split("-").map(Number);
+    const dayOfWeek = new Date(bYear, bMonth - 1, bDay).getDay();
+
+    const blockingRule = await RecurringBlock.findOne({
+      where: {
+        businessId: business.id,
+        dayOfWeek,
+        isActive: true,
+        [Op.or]: [{ serviceId: null }, { serviceId: service.id }],
+        [Op.and]: [
+          { [Op.or]: [{ startDate: null }, { startDate: { [Op.lte]: date } }] },
+          { [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: date } }] },
+          { startTime: { [Op.lt]: endTime } },
+          { endTime: { [Op.gt]: startTime } },
+        ],
+      },
+    });
+
+    if (blockingRule) {
       return NextResponse.json(
         { error: "Horario no disponible" },
         { status: 400 }

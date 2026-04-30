@@ -22,10 +22,16 @@ export default function SignupPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    passwordConfirm: '',
     name: '',
     phone: '', // Solo la parte local sin prefijo
     businessName: '',
+    acceptTerms: false,
   });
+
+  // Mínimo 8 caracteres y al menos 1 número o símbolo
+  const isPasswordStrong = (pw: string) =>
+    pw.length >= 8 && /[\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pw);
 
   // Argentina fijo - no se puede cambiar
   const phoneConfig = getPhoneConfig('AR');
@@ -42,6 +48,17 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isPasswordStrong(formData.password)) {
+      toast.error('La contraseña debe tener al menos 8 caracteres y un número o símbolo.');
+      return;
+    }
+
+    if (formData.password !== formData.passwordConfirm) {
+      toast.error('Las contraseñas no coinciden.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -318,23 +335,60 @@ export default function SignupPage() {
                 <Input
                   label="Nombre del negocio"
                   type="text"
-                  placeholder="Mi Peluquería"
+                  placeholder="Mi Negocio"
                   value={formData?.businessName ?? ''}
                   onChange={(e) => setFormData({ ...formData, businessName: e.target?.value ?? '' })}
                   icon={<Building className="w-5 h-5" />}
                   required
                 />
 
+                <div>
+                  <Input
+                    label="Contraseña"
+                    type="password"
+                    placeholder="Mínimo 8 caracteres + número/símbolo"
+                    value={formData?.password ?? ''}
+                    onChange={(e) => setFormData({ ...formData, password: e.target?.value ?? '' })}
+                    icon={<Lock className="w-5 h-5" />}
+                    required
+                    minLength={8}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Al menos 8 caracteres, un número o símbolo (ej. !, @, #).
+                  </p>
+                </div>
+
                 <Input
-                  label="Contraseña"
+                  label="Confirmar contraseña"
                   type="password"
-                  placeholder="Mínimo 6 caracteres"
-                  value={formData?.password ?? ''}
-                  onChange={(e) => setFormData({ ...formData, password: e.target?.value ?? '' })}
+                  placeholder="Repetí la contraseña"
+                  value={formData?.passwordConfirm ?? ''}
+                  onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target?.value ?? '' })}
                   icon={<Lock className="w-5 h-5" />}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
+
+                <label className="flex items-start gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={formData.acceptTerms}
+                    onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
+                    required
+                    className="mt-1 w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
+                  />
+                  <span>
+                    Acepto la{' '}
+                    <Link href="/privacidad" className="text-violet-600 hover:underline" target="_blank">
+                      Política de Privacidad
+                    </Link>{' '}
+                    y los{' '}
+                    <Link href="/terminos" className="text-violet-600 hover:underline" target="_blank">
+                      Términos y Condiciones
+                    </Link>
+                    .
+                  </span>
+                </label>
 
                 <Button type="submit" className="w-full" size="lg" loading={loading}>
                   Crear Cuenta

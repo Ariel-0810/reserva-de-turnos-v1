@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   CalendarDays,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: '/dashboard', label: 'Reservas', icon: ClipboardList },
   { href: '/dashboard/calendar', label: 'Calendario', icon: CalendarDays },
   { href: '/dashboard/services', label: 'Servicios', icon: LayoutGrid },
+  { href: '/dashboard/recurring', label: 'Horarios fijos', icon: CalendarClock },
   { href: '/dashboard/settings', label: 'Configuración', icon: Settings },
 ];
 
@@ -58,7 +60,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
                   key={item?.href}
                   href={item?.href ?? '#'}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
                     isActive(item?.href ?? '')
                       ? 'bg-violet-50 text-violet-700'
                       : 'text-gray-600 hover:bg-gray-100'

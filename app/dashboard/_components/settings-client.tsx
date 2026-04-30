@@ -236,12 +236,14 @@ export function SettingsClient() {
           <form onSubmit={handleSaveBusiness} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <Input
+                className="rounded-xl shadow-sm"
                 label="Nombre del negocio"
                 value={formData?.name ?? ''}
                 onChange={(e) => setFormData({ ...formData, name: e.target?.value ?? '' })}
                 required
               />
               <Input
+                className="rounded-xl shadow-sm"
                 label="Slug (URL)"
                 value={formData?.slug ?? ''}
                 onChange={(e) => setFormData({ ...formData, slug: e.target?.value?.toLowerCase()?.replace(/[^a-z0-9-]/g, '') ?? '' })}
@@ -253,10 +255,10 @@ export function SettingsClient() {
             <div className="bg-violet-50 rounded-xl p-4">
               <p className="text-sm text-violet-700 mb-2">Link público de reservas:</p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 bg-white px-3 py-2 rounded-lg text-sm text-gray-700 border border-violet-200 truncate">
+                <code className=" rounded-xl shadow-sm flex-1 bg-white px-3 py-2 text-sm text-gray-700 border border-violet-200 truncate">
                   {typeof window !== 'undefined' ? window.location.origin : ''}/booking/{formData?.slug}
                 </code>
-                <Button type="button" variant="outline" size="sm" onClick={copyLink}>
+                <Button className="rounded-xl shadow-sm" type="button" variant="outline" size="sm" onClick={copyLink}>
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
@@ -264,11 +266,13 @@ export function SettingsClient() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               <Input
+                className="rounded-xl shadow-sm"
                 label="Nombre del dueño"
                 value={formData?.ownerName ?? ''}
                 onChange={(e) => setFormData({ ...formData, ownerName: e.target?.value ?? '' })}
               />
               <Input
+                className="rounded-xl shadow-sm"
                 label="Teléfono del dueño"
                 value={formData?.ownerPhone ?? ''}
                 onChange={(e) => setFormData({ ...formData, ownerPhone: e.target?.value ?? '' })}
@@ -276,25 +280,28 @@ export function SettingsClient() {
             </div>
 
             <Input
+              className="rounded-xl shadow-sm"
               label="Teléfono del negocio"
               value={formData?.phone ?? ''}
               onChange={(e) => setFormData({ ...formData, phone: e.target?.value ?? '' })}
             />
 
             <Input
+              className="rounded-xl shadow-sm"
               label="Dirección"
               value={formData?.address ?? ''}
               onChange={(e) => setFormData({ ...formData, address: e.target?.value ?? '' })}
             />
 
             <Textarea
+              className="rounded-xl shadow-sm"
               label="Descripción"
               value={formData?.description ?? ''}
               onChange={(e) => setFormData({ ...formData, description: e.target?.value ?? '' })}
               rows={3}
             />
 
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving} className="rounded-full shadow-sm">
               <Save className="w-4 h-4 mr-2" /> Guardar cambios
             </Button>
           </form>
@@ -331,17 +338,17 @@ export function SettingsClient() {
                     onChange={(checked) => updateHour(dayOfWeek, 'isOpen', checked)}
                   />
                   {dayHours?.isOpen && (
-                    <div className="flex items-center gap-2 flex-1">
+                    <div className="flex items-center gap-2 flex-1 rounded-xl">
                       <TimeInput
                         value={dayHours?.openTime ?? '09:00'}
                         onChange={(value) => updateHour(dayOfWeek, 'openTime', value)}
-                        className="w-32"
+                        className="w-32 rounded-xl shadow-sm"
                       />
                       <span className="text-gray-500">a</span>
                       <TimeInput
                         value={dayHours?.closeTime ?? '23:00'}
                         onChange={(value) => updateHour(dayOfWeek, 'closeTime', value)}
-                        className="w-32"
+                        className="w-32 rounded-xl shadow-sm"
                       />
                     </div>
                   )}
@@ -353,7 +360,7 @@ export function SettingsClient() {
             })}
           </div>
 
-          <Button onClick={handleSaveHours} className="mt-6" loading={savingHours}>
+          <Button className="rounded-full shadow-sm mt-6" onClick={handleSaveHours} loading={savingHours}>
             <Save className="w-4 h-4 mr-2" /> Guardar horarios
           </Button>
         </CardContent>

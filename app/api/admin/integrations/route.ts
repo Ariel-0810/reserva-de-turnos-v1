@@ -5,6 +5,20 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { SystemConfig, Op } from '@/lib/db';
 
+const TWILIO_KEYS = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_WHATSAPP_NUMBER'];
+const MP_KEYS = ['mp.accessToken', 'mp.publicKey'];
+const PLAN_KEYS = ['plan.defaultPrice'];
+const ALL_KEYS = [...TWILIO_KEYS, ...MP_KEYS, ...PLAN_KEYS];
+
+const SECRET_KEYS = new Set(['TWILIO_AUTH_TOKEN', 'mp.accessToken']);
+const MASK_PLACEHOLDER = '********';
+
+function maskValue(value: string): string {
+  if (!value) return '';
+  if (value.length <= 4) return MASK_PLACEHOLDER;
+  return `${MASK_PLACEHOLDER}${value.slice(-4)}`;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -13,20 +27,21 @@ export async function GET() {
     }
 
     const configs = await SystemConfig.findAll({
-      where: {
-        key: { [Op.in]: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_WHATSAPP_NUMBER'] },
-      },
+      where: { key: { [Op.in]: ALL_KEYS } },
     });
 
-    const configMap: Record<string, string> = {};
+    const map: Record<string, string> = {};
     (configs ?? []).forEach((c) => {
-      configMap[c?.key ?? ''] = c?.value ?? '';
+      map[c?.key ?? ''] = c?.value ?? '';
     });
 
     return NextResponse.json({
-      twilioAccountSid: configMap?.['TWILIO_ACCOUNT_SID'] ?? '',
-      twilioAuthToken: configMap?.['TWILIO_AUTH_TOKEN'] ? '********' : '',
-      twilioWhatsappNumber: configMap?.['TWILIO_WHATSAPP_NUMBER'] ?? '',
+      twilioAccountSid: map['TWILIO_ACCOUNT_SID'] ?? '',
+      twilioAuthToken: map['TWILIO_AUTH_TOKEN'] ? maskValue(map['TWILIO_AUTH_TOKEN']) : '',
+      twilioWhatsappNumber: map['TWILIO_WHATSAPP_NUMBER'] ?? '',
+      mpAccessToken: map['mp.accessToken'] ? maskValue(map['mp.accessToken']) : '',
+      mpPublicKey: map['mp.publicKey'] ?? '',
+      planDefaultPrice: map['plan.defaultPrice'] ?? '',
     });
   } catch (error) {
     console.error('GET integrations error:', error);
@@ -42,23 +57,35 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { twilioAccountSid, twilioAuthToken, twilioWhatsappNumber } = body ?? {};
+    const {
+      twilioAccountSid,
+      twilioAuthToken,
+      twilioWhatsappNumber,
+      mpAccessToken,
+      mpPublicKey,
+      planDefaultPrice,
+    } = body ?? {};
 
-    const updates = [
+    const updates: { key: string; value: string }[] = [
       { key: 'TWILIO_ACCOUNT_SID', value: twilioAccountSid ?? '' },
       { key: 'TWILIO_AUTH_TOKEN', value: twilioAuthToken ?? '' },
       { key: 'TWILIO_WHATSAPP_NUMBER', value: twilioWhatsappNumber ?? '' },
+      { key: 'mp.accessToken', value: mpAccessToken ?? '' },
+      { key: 'mp.publicKey', value: mpPublicKey ?? '' },
+      { key: 'plan.defaultPrice', value: planDefaultPrice ?? '' },
     ];
 
     for (const { key, value } of updates) {
-      if (value && value !== '********') {
-        const [config, created] = await SystemConfig.findOrCreate({
-          where: { key },
-          defaults: { key, value },
-        });
-        if (!created) {
-          await config.update({ value });
-        }
+      // Skip masked secret values (no overwrite con el placeholder)
+      if (SECRET_KEYS.has(key) && (value === '' || value.startsWith(MASK_PLACEHOLDER))) {
+        continue;
+      }
+      const [config, created] = await SystemConfig.findOrCreate({
+        where: { key },
+        defaults: { key, value },
+      });
+      if (!created) {
+        await config.update({ value });
       }
     }
 
