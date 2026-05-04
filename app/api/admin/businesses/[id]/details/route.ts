@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { Business, User, Service, Booking, BusinessHours, initDb } from '@/lib/db';
+import { Business, User, Service, Booking, BusinessHours, Subscription, Payment, initDb } from '@/lib/db';
 
 export async function GET(
   _req: Request,
@@ -48,6 +48,16 @@ export async function GET(
       })
     );
 
+    // Subscription + últimos 20 pagos del negocio (para el tab Suscripción del modal admin)
+    const subscription = await Subscription.findOne({ where: { businessId: params.id } });
+    const subPayments = subscription
+      ? await Payment.findAll({
+          where: { subscriptionId: subscription.id },
+          order: [['paidAt', 'DESC']],
+          limit: 20,
+        })
+      : [];
+
     return NextResponse.json({
       business: businessPlain,
       user: user ? user.get({ plain: true }) : null,
@@ -57,6 +67,8 @@ export async function GET(
       }),
       hours: hours.map((h) => h.get({ plain: true })),
       recentBookings: bookingsWithService,
+      subscription: subscription ? subscription.get({ plain: true }) : null,
+      payments: subPayments.map((p) => p.get({ plain: true })),
     });
   } catch (error) {
     console.error('GET admin business details error:', error);

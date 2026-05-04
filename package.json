@@ -9,6 +9,7 @@
     "seed": "tsx scripts/seed.ts",
     "db:migrate-subscriptions": "tsx -r dotenv/config scripts/migrate-add-subscriptions.ts",
     "db:migrate-recurring-blocks": "tsx -r dotenv/config scripts/migrate-add-recurring-blocks.ts",
+    "db:migrate-cancel-reason": "tsx -r dotenv/config scripts/migrate-add-cancel-reason.ts",
     "test:email": "tsx scripts/test-email.ts",
     "test:signup": "tsx scripts/test-signup-flow.ts",
     "init:hours": "tsx scripts/init-business-hours.ts",

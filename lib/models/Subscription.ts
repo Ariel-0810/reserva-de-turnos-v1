@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "@/lib/sequelize";
 
 export type SubscriptionStatus = "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELLED";
+export type CancelReason = "PRICE" | "NOT_USED" | "FOUND_BETTER" | "OTHER";
 
 export interface SubscriptionAttributes {
   id: string;
@@ -11,13 +12,15 @@ export interface SubscriptionAttributes {
   trialEndsAt: Date | null;
   paidUntil: Date | null;
   lastPaymentAt: Date | null;
+  cancelReason: CancelReason | null;
+  cancelReasonText: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 type SubscriptionCreationAttributes = Optional<
   SubscriptionAttributes,
-  "id" | "trialEndsAt" | "paidUntil" | "lastPaymentAt" | "createdAt" | "updatedAt"
+  "id" | "trialEndsAt" | "paidUntil" | "lastPaymentAt" | "cancelReason" | "cancelReasonText" | "createdAt" | "updatedAt"
 >;
 
 export class Subscription
@@ -31,6 +34,8 @@ export class Subscription
   declare trialEndsAt: Date | null;
   declare paidUntil: Date | null;
   declare lastPaymentAt: Date | null;
+  declare cancelReason: CancelReason | null;
+  declare cancelReasonText: string | null;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -71,6 +76,14 @@ Subscription.init(
     },
     lastPaymentAt: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    cancelReason: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    cancelReasonText: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     createdAt: {

@@ -1,6 +1,6 @@
 import { Business, Subscription, Payment, SystemConfig, sequelize } from "../lib/db";
 
-const DEFAULT_PRICE = "5000";
+const DEFAULT_PRICE = "20000";
 const TRIAL_DAYS = 7;
 
 function addDays(date: Date, days: number): Date {

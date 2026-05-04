@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Building2, RefreshCw, ExternalLink, Search, Mail, MessageCircle,
-  Eye, Filter, ArrowUpDown, AlertTriangle,
+  Eye, Filter, ArrowUpDown, AlertTriangle, Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,12 +32,32 @@ interface DetailBooking {
   bookingDate: string; startTime: string; endTime: string; status: BookingStatus; createdAt: string;
   service: { name: string; price: string } | null;
 }
+type SubStatus = 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'SUSPENDED' | 'CANCELLED';
+interface DetailSubscription {
+  id: string;
+  status: SubStatus;
+  monthlyPrice: number | string;
+  trialEndsAt: string | null;
+  paidUntil: string | null;
+  lastPaymentAt: string | null;
+  cancelReason: string | null;
+  cancelReasonText: string | null;
+}
+interface DetailPayment {
+  id: string;
+  amount: number | string;
+  paidAt: string;
+  method: 'MANUAL_TRANSFER' | 'MERCADOPAGO';
+  notes: string | null;
+}
 interface BusinessDetail {
   business: Business;
   user: { name: string; email: string; phone?: string | null } | null;
   services: DetailService[];
   hours: DetailHours[];
   recentBookings: DetailBooking[];
+  subscription: DetailSubscription | null;
+  payments: DetailPayment[];
 }
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -53,10 +73,44 @@ export function BusinessesClient() {
   const [sortBy, setSortBy] = useState<SortBy>('createdAt');
 
   const [confirmToggle, setConfirmToggle] = useState<{ id: string; name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detail, setDetail] = useState<BusinessDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [detailTab, setDetailTab] = useState<'services' | 'hours' | 'bookings'>('services');
+  const [detailTab, setDetailTab] = useState<'services' | 'hours' | 'bookings' | 'subscription'>('services');
+
+  // Tab Suscripción state
+  const [editPriceValue, setEditPriceValue] = useState('');
+  const [savingPrice, setSavingPrice] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    paidAt: '',
+    method: 'MANUAL_TRANSFER' as 'MANUAL_TRANSFER' | 'MERCADOPAGO',
+    notes: '',
+  });
+  const [registeringPayment, setRegisteringPayment] = useState(false);
+
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const fmtMoney = (n: number | string) =>
+    Number(n).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  const fmtDateAR = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+
+  const subStatusBadge: Record<SubStatus, 'success' | 'warning' | 'default'> = {
+    TRIAL: 'warning',
+    ACTIVE: 'success',
+    PAST_DUE: 'warning',
+    SUSPENDED: 'default',
+    CANCELLED: 'default',
+  };
+  const subStatusLabel: Record<SubStatus, string> = {
+    TRIAL: 'Trial',
+    ACTIVE: 'Activa',
+    PAST_DUE: 'Morosa',
+    SUSPENDED: 'Suspendida',
+    CANCELLED: 'Cancelada',
+  };
 
   const fetchBusinesses = async () => {
     setLoading(true);
@@ -90,7 +144,81 @@ export function BusinessesClient() {
   const openDetail = (id: string) => {
     setDetailId(id);
     setDetailTab('services');
+    setEditPriceValue('');
+    setPaymentForm({ amount: '', paidAt: todayISO(), method: 'MANUAL_TRANSFER', notes: '' });
     fetchDetail(id);
+  };
+
+  const updatePrice = async () => {
+    if (!detail?.subscription) return;
+    const price = parseFloat(editPriceValue);
+    if (isNaN(price) || price < 0) {
+      toast.error('Precio inválido');
+      return;
+    }
+    setSavingPrice(true);
+    try {
+      const res = await fetch(`/api/admin/subscriptions/${detail.subscription.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'change_price', monthlyPrice: price }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? 'Error');
+      }
+      toast.success('Precio actualizado');
+      setEditPriceValue('');
+      if (detailId) fetchDetail(detailId);
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Error al guardar precio');
+    } finally {
+      setSavingPrice(false);
+    }
+  };
+
+  const registerPayment = async () => {
+    if (!detail?.subscription) return;
+    const amount = parseFloat(paymentForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Monto inválido');
+      return;
+    }
+    if (!paymentForm.paidAt) {
+      toast.error('Fecha requerida');
+      return;
+    }
+    setRegisteringPayment(true);
+    try {
+      const res = await fetch(
+        `/api/admin/subscriptions/${detail.subscription.id}/payments`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            paidAt: paymentForm.paidAt,
+            method: paymentForm.method,
+            notes: paymentForm.notes.trim() || null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? 'Error');
+      const newPaidUntil = data?.subscription?.paidUntil
+        ? new Date(data.subscription.paidUntil).toLocaleDateString('es-AR')
+        : null;
+      toast.success(
+        newPaidUntil ? `Pago registrado. Vigente hasta ${newPaidUntil}` : 'Pago registrado'
+      );
+      setPaymentForm({ amount: '', paidAt: todayISO(), method: 'MANUAL_TRANSFER', notes: '' });
+      if (detailId) fetchDetail(detailId);
+      fetchBusinesses();
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Error al registrar pago');
+    } finally {
+      setRegisteringPayment(false);
+    }
   };
   const closeDetail = () => {
     setDetailId(null);
@@ -118,6 +246,24 @@ export function BusinessesClient() {
       setConfirmToggle({ id: b.id, name: b.name });
     } else {
       setActive(b.id, checked);
+    }
+  };
+
+  const deleteBusiness = async (id: string) => {
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/admin/businesses/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? 'Error');
+      }
+      toast.success('Negocio eliminado');
+      setConfirmDelete(null);
+      fetchBusinesses();
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Error al eliminar');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -290,6 +436,13 @@ export function BusinessesClient() {
                           onChange={(checked) => onToggleClick(b, checked)}
                           label={b.isActive ? 'Activo' : 'Inactivo'}
                         />
+                        <button
+                          onClick={() => setConfirmDelete({ id: b.id, name: b.name })}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-xl shadow-sm border border-red-200"
+                          title="Eliminar negocio"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                        </button>
                         <a
                           href={`/booking/${b.slug}`}
                           target="_blank"
@@ -341,6 +494,47 @@ export function BusinessesClient() {
         )}
       </Modal>
 
+      {/* Modal confirmación eliminar permanente */}
+      <Modal
+        isOpen={!!confirmDelete}
+        onClose={() => !deleteLoading && setConfirmDelete(null)}
+        title="Eliminar negocio"
+        size="sm"
+      >
+        {confirmDelete && (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                ¿Estás seguro de eliminar <strong>{confirmDelete.name}</strong>?
+                <br /><br />
+                Esto borra <strong>permanentemente</strong> de la base de datos:
+                <ul className="list-disc pl-5 mt-2 space-y-0.5">
+                  <li>El negocio</li>
+                  <li>Todos sus servicios</li>
+                  <li>Todas sus reservas</li>
+                  <li>Sus horarios y bloques recurrentes</li>
+                  <li>Su suscripción y pagos registrados</li>
+                </ul>
+                <p className="mt-2 font-semibold">Esta acción no se puede deshacer.</p>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="secondary" onClick={() => setConfirmDelete(null)} disabled={deleteLoading}>
+                Cancelar
+              </Button>
+              <button
+                onClick={() => deleteBusiness(confirmDelete.id)}
+                disabled={deleteLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium disabled:opacity-50"
+              >
+                {deleteLoading ? 'Eliminando…' : 'Sí, eliminar permanentemente'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* Modal detalle del negocio */}
       <Modal
         isOpen={!!detailId}
@@ -362,11 +556,12 @@ export function BusinessesClient() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-gray-200">
+            <div className="flex gap-2 border-b border-gray-200 flex-wrap">
               {([
                 { v: 'services', label: `Servicios (${detail.services.length})` },
                 { v: 'hours', label: 'Horarios' },
                 { v: 'bookings', label: `Últimas reservas (${detail.recentBookings.length})` },
+                { v: 'subscription', label: 'Suscripción' },
               ] as const).map((t) => (
                 <button
                   key={t.v}
@@ -420,6 +615,150 @@ export function BusinessesClient() {
                         </div>
                       );
                     })}
+                  </div>
+                )
+              )}
+
+              {detailTab === 'subscription' && (
+                !detail.subscription ? (
+                  <p className="text-sm text-gray-500 py-4">Este negocio no tiene suscripción cargada.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Estado actual */}
+                    <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
+                      <p>
+                        <strong>Estado:</strong>{' '}
+                        <Badge variant={subStatusBadge[detail.subscription.status]}>
+                          {subStatusLabel[detail.subscription.status]}
+                        </Badge>
+                      </p>
+                      <p><strong>Precio mensual:</strong> {fmtMoney(detail.subscription.monthlyPrice)}</p>
+                      <p><strong>Trial termina:</strong> {fmtDateAR(detail.subscription.trialEndsAt)}</p>
+                      <p><strong>Paga hasta:</strong> {fmtDateAR(detail.subscription.paidUntil)}</p>
+                      <p><strong>Último pago:</strong> {fmtDateAR(detail.subscription.lastPaymentAt)}</p>
+                      {detail.subscription.cancelReason && (
+                        <p className="text-amber-700">
+                          <strong>Motivo de cancelación:</strong> {detail.subscription.cancelReason}
+                          {detail.subscription.cancelReasonText && ` — "${detail.subscription.cancelReasonText}"`}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Cambiar precio */}
+                    <div className="border border-gray-200 rounded-xl p-3">
+                      <p className="text-sm font-medium text-gray-900 mb-2">Cambiar precio mensual</p>
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <label className="text-xs text-gray-600 block">Nuevo precio (ARS)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={editPriceValue}
+                            onChange={(e) => setEditPriceValue(e.target.value)}
+                            placeholder={String(detail.subscription.monthlyPrice)}
+                            className="w-full rounded-xl border border-gray-300 shadow-sm px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <Button onClick={updatePrice} loading={savingPrice} size="sm">
+                          Guardar
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ej: descuento founding-member, plan corporativo, etc.
+                      </p>
+                    </div>
+
+                    {/* Registrar pago manual */}
+                    <div className="border border-gray-200 rounded-xl p-3 space-y-2">
+                      <p className="text-sm font-medium text-gray-900">Registrar pago manual</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600 block">Monto (ARS)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={paymentForm.amount}
+                            onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                            placeholder={String(detail.subscription.monthlyPrice)}
+                            className="w-full rounded-xl border border-gray-300 shadow-sm px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 block">Fecha de pago</label>
+                          <input
+                            type="date"
+                            value={paymentForm.paidAt}
+                            onChange={(e) => setPaymentForm({ ...paymentForm, paidAt: e.target.value })}
+                            className="w-full rounded-xl border border-gray-300 shadow-sm px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600 block">Método</label>
+                        <select
+                          value={paymentForm.method}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              method: e.target.value as 'MANUAL_TRANSFER' | 'MERCADOPAGO',
+                            })
+                          }
+                          className="w-full rounded-xl border border-gray-300 shadow-sm px-3 py-2 text-sm"
+                        >
+                          <option value="MANUAL_TRANSFER">Transferencia bancaria</option>
+                          <option value="MERCADOPAGO">MercadoPago</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600 block">Notas (opcional)</label>
+                        <input
+                          type="text"
+                          value={paymentForm.notes}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                          placeholder="Ej: ref. transferencia 1234567"
+                          className="w-full rounded-xl border border-gray-300 shadow-sm px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <Button onClick={registerPayment} loading={registeringPayment} className="w-full">
+                        Registrar pago + extender 30 días
+                      </Button>
+                    </div>
+
+                    {/* Historial de pagos */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 mb-2">
+                        Historial de pagos ({detail.payments.length})
+                      </p>
+                      {detail.payments.length === 0 ? (
+                        <p className="text-xs text-gray-500">Sin pagos registrados.</p>
+                      ) : (
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {detail.payments.map((p) => (
+                            <div
+                              key={p.id}
+                              className="flex items-center justify-between text-xs bg-white border border-gray-100 rounded-lg px-3 py-2"
+                            >
+                              <div>
+                                <span className="font-medium">{fmtMoney(p.amount)}</span>
+                                <span className="text-gray-500 mx-2">·</span>
+                                <span className="text-gray-700">{fmtDateAR(p.paidAt)}</span>
+                                <span className="text-gray-500 mx-2">·</span>
+                                <span className="text-gray-700">
+                                  {p.method === 'MERCADOPAGO' ? 'MercadoPago' : 'Transferencia'}
+                                </span>
+                              </div>
+                              {p.notes && (
+                                <span className="text-gray-500 truncate ml-2 max-w-xs" title={p.notes}>
+                                  {p.notes}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )
               )}

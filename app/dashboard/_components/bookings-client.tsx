@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { ClipboardList, Eye, Check, X, RefreshCw, Search, MessageCircle, Filter, Bell, BellOff } from 'lucide-react';
+import Link from 'next/link';
+import { ClipboardList, Eye, Check, X, RefreshCw, Search, MessageCircle, Filter, Bell, BellOff, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,8 +57,35 @@ const statusFilters: { value: BookingStatus | 'all'; label: string }[] = [
 
 const LAST_SEEN_KEY = 'bookingsLastSeenAt';
 
+interface SubInfo {
+  status: 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'SUSPENDED' | 'CANCELLED';
+  trialEndsAt: string | null;
+  paidUntil: string | null;
+}
+
 export function BookingsClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [trialSub, setTrialSub] = useState<SubInfo | null>(null);
+
+  useEffect(() => {
+    fetch('/api/business/subscription')
+      .then((r) => r.json())
+      .then((d) => setTrialSub(d?.subscription ?? null))
+      .catch(() => {});
+  }, []);
+
+  const trialBanner = useMemo(() => {
+    if (!trialSub || trialSub.status !== 'TRIAL' || !trialSub.trialEndsAt) return null;
+    const days = Math.ceil((new Date(trialSub.trialEndsAt).getTime() - Date.now()) / 86400000);
+    if (days > 3) return null;
+    const msg =
+      days <= 0
+        ? 'Tu prueba gratis venció'
+        : days === 1
+        ? 'Tu prueba gratis vence mañana'
+        : `Tu prueba gratis vence en ${days} días`;
+    return { msg, expired: days <= 0 };
+  }, [trialSub]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -328,6 +356,41 @@ export function BookingsClient() {
 
   return (
     <div className="space-y-6">
+      {trialBanner && (
+        <div
+          className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
+            trialBanner.expired
+              ? 'bg-red-50 border-red-200'
+              : 'bg-amber-50 border-amber-200'
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className={`w-5 h-5 shrink-0 mt-0.5 ${
+                trialBanner.expired ? 'text-red-600' : 'text-amber-600'
+              }`}
+            />
+            <div>
+              <p className={`font-semibold ${trialBanner.expired ? 'text-red-900' : 'text-amber-900'}`}>
+                {trialBanner.msg}
+              </p>
+              <p className={`text-sm ${trialBanner.expired ? 'text-red-800' : 'text-amber-800'}`}>
+                Configurá tu pago para no perder el acceso al dashboard ni a tu link público.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            className={`text-white text-sm font-medium px-4 py-2 rounded-xl whitespace-nowrap shadow-sm ${
+              trialBanner.expired
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-amber-600 hover:bg-amber-700'
+            }`}
+          >
+            Ver mi suscripción
+          </Link>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
