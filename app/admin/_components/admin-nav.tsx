@@ -25,6 +25,12 @@ interface AdminNavProps {
   };
 }
 
+function firstName(name?: string | null): string {
+  const n = (name ?? '').trim();
+  if (!n) return 'Admin';
+  return n.split(/\s+/)[0];
+}
+
 const navItems = [
   { href: '/admin', label: 'Estadísticas', icon: BarChart3 },
   { href: '/admin/businesses', label: 'Negocios', icon: Building2 },
@@ -74,11 +80,13 @@ export function AdminNav({ user }: AdminNavProps) {
             </nav>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium truncate max-w-[150px]">
-                  {user?.name ?? 'Admin'}
+              <div className="text-right">
+                <p className="text-sm font-medium truncate max-w-[140px]">
+                  Hola, {firstName(user?.name)}
                 </p>
-                <p className="text-xs text-gray-400 truncate max-w-[150px]">{user?.email ?? ''}</p>
+                <p className="hidden sm:block text-xs text-gray-400 truncate max-w-[140px]">
+                  {user?.email ?? ''}
+                </p>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}

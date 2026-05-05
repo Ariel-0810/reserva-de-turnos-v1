@@ -24,6 +24,12 @@ interface DashboardNavProps {
   };
 }
 
+function firstName(name?: string | null): string {
+  const n = (name ?? '').trim();
+  if (!n) return 'Usuario';
+  return n.split(/\s+/)[0];
+}
+
 const navItems = [
   { href: '/dashboard', label: 'Reservas', icon: ClipboardList },
   { href: '/dashboard/calendar', label: 'Calendario', icon: CalendarDays },
@@ -73,11 +79,13 @@ export function DashboardNav({ user }: DashboardNavProps) {
             </nav>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
-                  {user?.name ?? 'Usuario'}
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900 truncate max-w-[140px]">
+                  Hola, {firstName(user?.name)}
                 </p>
-                <p className="text-xs text-gray-500 truncate max-w-[150px]">{user?.email ?? ''}</p>
+                <p className="hidden sm:block text-xs text-gray-500 truncate max-w-[140px]">
+                  {user?.email ?? ''}
+                </p>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}

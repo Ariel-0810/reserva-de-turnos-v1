@@ -643,32 +643,31 @@ export function SettingsClient() {
               return (
                 <div
                   key={dayOfWeek}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                  className="flex flex-row items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-xl"
                 >
-                  <div className="w-24 shrink-0">
-                    <span className="font-medium text-gray-900">{DAY_NAMES[dayOfWeek]}</span>
+                  <div className="w-16 sm:w-24 shrink-0">
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">{DAY_NAMES[dayOfWeek]}</span>
                   </div>
                   <Toggle
                     checked={dayHours?.isOpen ?? false}
                     onChange={(checked) => updateHour(dayOfWeek, 'isOpen', checked)}
                   />
-                  {dayHours?.isOpen && (
-                    <div className="flex items-center gap-2 flex-1 rounded-xl">
+                  {dayHours?.isOpen ? (
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0 justify-end sm:justify-start">
                       <TimeInput
                         value={dayHours?.openTime ?? '09:00'}
                         onChange={(value) => updateHour(dayOfWeek, 'openTime', value)}
-                        className="w-32 rounded-xl shadow-sm"
+                        className="w-[84px] sm:w-32 rounded-xl shadow-sm"
                       />
-                      <span className="text-gray-500">a</span>
+                      <span className="text-gray-500 text-sm">a</span>
                       <TimeInput
                         value={dayHours?.closeTime ?? '23:00'}
                         onChange={(value) => updateHour(dayOfWeek, 'closeTime', value)}
-                        className="w-32 rounded-xl shadow-sm"
+                        className="w-[84px] sm:w-32 rounded-xl shadow-sm"
                       />
                     </div>
-                  )}
-                  {!dayHours?.isOpen && (
-                    <span className="text-sm text-gray-500">Cerrado</span>
+                  ) : (
+                    <span className="text-sm text-gray-500 ml-auto">Cerrado</span>
                   )}
                 </div>
               );

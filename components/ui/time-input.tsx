@@ -26,7 +26,6 @@ export function TimeInput({ value, onChange, className }: TimeInputProps) {
 
   const handleHourChange = (hour: string) => {
     onChange(`${hour.padStart(2, '0')}:${minutes || '00'}`);
-    setShowPicker(false);
   };
 
   const handleMinuteChange = (minute: string) => {
@@ -43,12 +42,18 @@ export function TimeInput({ value, onChange, className }: TimeInputProps) {
         onClick={() => setShowPicker(!showPicker)}
         className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
       />
-      
+
       {showPicker && (
-        <div className="absolute z-50 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-2 grid grid-cols-2 gap-2 max-h-64 overflow-auto">
+        <div
+          className={cn(
+            'absolute z-50 mt-2 right-0 bg-white border border-gray-200 rounded-xl shadow-xl p-3',
+            'w-56 max-w-[calc(100vw-1rem)]'
+          )}
+        >
+          {/* Hora */}
           <div>
-            <p className="text-xs font-medium text-gray-500 px-2 py-1 sticky top-0 bg-white">Hora</p>
-            <div className="grid grid-cols-4 gap-1">
+            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Hora</p>
+            <div className="grid grid-cols-6 gap-1 max-h-44 overflow-y-auto">
               {Array.from({ length: 24 }, (_, i) => {
                 const hour = i.toString().padStart(2, '0');
                 return (
@@ -57,8 +62,10 @@ export function TimeInput({ value, onChange, className }: TimeInputProps) {
                     type="button"
                     onClick={() => handleHourChange(hour)}
                     className={cn(
-                      'px-2 py-1 text-sm rounded hover:bg-violet-100 transition-colors',
-                      hours === hour && 'bg-violet-600 text-white hover:bg-violet-700'
+                      'h-8 text-sm rounded-md font-medium tabular-nums transition-colors',
+                      hours === hour
+                        ? 'bg-violet-600 text-white hover:bg-violet-700'
+                        : 'text-gray-700 hover:bg-violet-50 hover:text-violet-700'
                     )}
                   >
                     {hour}
@@ -67,9 +74,10 @@ export function TimeInput({ value, onChange, className }: TimeInputProps) {
               })}
             </div>
           </div>
-          
-          <div>
-            <p className="text-xs font-medium text-gray-500 px-2 py-1 sticky top-0 bg-white">Min</p>
+
+          {/* Min */}
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Minutos</p>
             <div className="grid grid-cols-4 gap-1">
               {['00', '15', '30', '45'].map((minute) => (
                 <button
@@ -77,8 +85,10 @@ export function TimeInput({ value, onChange, className }: TimeInputProps) {
                   type="button"
                   onClick={() => handleMinuteChange(minute)}
                   className={cn(
-                    'px-2 py-1 text-sm rounded hover:bg-violet-100 transition-colors',
-                    minutes === minute && 'bg-violet-600 text-white hover:bg-violet-700'
+                    'h-9 text-sm rounded-md font-medium tabular-nums transition-colors',
+                    minutes === minute
+                      ? 'bg-violet-600 text-white hover:bg-violet-700'
+                      : 'text-gray-700 hover:bg-violet-50 hover:text-violet-700'
                   )}
                 >
                   {minute}
