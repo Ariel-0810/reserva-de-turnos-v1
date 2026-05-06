@@ -55,14 +55,14 @@ export default function PrivacidadPage() {
               </h2>
               <p>
                 El responsable del tratamiento de los datos personales es{' '}
-                <strong>[Nombre del titular / Razón social]</strong>, con domicilio
-                en [Ciudad, Provincia, Argentina]. Para cualquier consulta vinculada
+                <strong>AgendUp</strong>, con domicilio
+                en Buenos Aires, Argentina. Para cualquier consulta vinculada
                 a esta política, podés escribirnos a{' '}
                 <a
-                  href="mailto:g.a.gomez2016@gmail.com"
+                  href="mailto:soporteagendup@gmail.com"
                   className="text-violet-600 hover:underline"
                 >
-                  g.a.gomez2016@gmail.com
+                  soporteagendup@gmail.com
                 </a>
                 .
               </p>
@@ -182,10 +182,10 @@ export default function PrivacidadPage() {
               <p className="mt-3">
                 Para ejercerlos, escribinos a{' '}
                 <a
-                  href="mailto:g.a.gomez2016@gmail.com"
+                  href="mailto:soporteagendup@gmail.com"
                   className="text-violet-600 hover:underline"
                 >
-                  g.a.gomez2016@gmail.com
+                  soporteagendup@gmail.com
                 </a>{' '}
                 desde el email registrado en tu cuenta. Te responderemos dentro de
                 los 10 días hábiles que establece la ley.
@@ -250,10 +250,10 @@ export default function PrivacidadPage() {
                 Para cualquier consulta sobre esta Política de Privacidad o el
                 tratamiento de tus datos, podés escribirnos a{' '}
                 <a
-                  href="mailto:g.a.gomez2016@gmail.com"
+                  href="mailto:soporteagendup@gmail.com"
                   className="text-violet-600 hover:underline"
                 >
-                  g.a.gomez2016@gmail.com
+                  soporteagendup@gmail.com
                 </a>
                 .
               </p>

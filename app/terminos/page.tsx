@@ -44,8 +44,8 @@ export default function TerminosPage() {
                 Estos Términos y Condiciones (en adelante, &quot;los
                 Términos&quot;) regulan el uso de la plataforma AgendUp (en
                 adelante, &quot;la Plataforma&quot;), provista por{' '}
-                <strong>[Nombre del titular / Razón social]</strong>, con domicilio
-                en [Ciudad, Provincia, Argentina]. Al crear una cuenta o usar la
+                <strong>AgendUp</strong>, con domicilio
+                en Buenos Aires, Argentina. Al crear una cuenta o usar la
                 Plataforma, aceptás estos Términos en su totalidad.
               </p>
             </section>
@@ -159,10 +159,10 @@ export default function TerminosPage() {
                 Podés dar de baja tu cuenta en cualquier momento desde el panel de
                 configuración o escribiendo a{' '}
                 <a
-                  href="mailto:g.a.gomez2016@gmail.com"
+                  href="mailto:soporteagendup@gmail.com"
                   className="text-violet-600 hover:underline"
                 >
-                  g.a.gomez2016@gmail.com
+                  soporteagendup@gmail.com
                 </a>
                 . Nos reservamos el derecho de suspender o cancelar cuentas que
                 violen estos Términos, previa notificación cuando sea posible.
@@ -235,10 +235,10 @@ export default function TerminosPage() {
               <p>
                 Para cualquier consulta sobre estos Términos podés escribirnos a{' '}
                 <a
-                  href="mailto:g.a.gomez2016@gmail.com"
+                  href="mailto:soporteagendup@gmail.com"
                   className="text-violet-600 hover:underline"
                 >
-                  g.a.gomez2016@gmail.com
+                  soporteagendup@gmail.com
                 </a>
                 .
               </p>

@@ -10,9 +10,9 @@ async function main() {
   // Create SUPERADMIN
   const adminPassword = await bcrypt.hash('Mi@081013.', 12);
   const [superadmin, createdAdmin] = await User.findOrCreate({
-    where: { email: 'g.a.gomez2016@gmail.com' },
+    where: { email: 'soporteagendup@gmail.com' },
     defaults: {
-      email: 'g.a.gomez2016@gmail.com',
+      email: 'soporteagendup@gmail.com',
       password: adminPassword,
       name: 'Super Admin',
       role: 'SUPERADMIN',
@@ -154,8 +154,8 @@ async function main() {
   console.log('=== Credenciales de acceso ===');
   console.log('');
   console.log('SUPERADMIN:');
-  console.log('  Email: g.a.gomez2016@gmail.com');
-  console.log('  Password: Mi@081013.');
+  console.log('  Email: soporteagendup@gmail.com');
+  console.log('  Password: S@porte123.');
   console.log('');
   console.log('DEMO BUSINESS OWNER:');
   console.log('  Email: demo@business.com');

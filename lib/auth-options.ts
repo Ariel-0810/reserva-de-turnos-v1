@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
         if (user.role === "BUSINESS_OWNER" && business) {
           if (!business.isActive) {
             throw new Error(
-              "Tu negocio ha sido desactivado. Por favor contacta al administrador en g.a.gomez2016@gmail.com para más información."
+              "Tu negocio ha sido desactivado. Por favor contacta al administrador en soporteagendup@gmail.com para más información."
             );
           }
         }

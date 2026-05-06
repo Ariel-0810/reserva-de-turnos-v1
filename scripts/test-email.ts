@@ -26,12 +26,12 @@ async function testEmail() {
   // 3. Intentar enviar email de prueba
   console.log('\n3. Enviando email de prueba...');
   console.log('   - Desde: AgendUp <noreply@bookingsaas.app>');
-  console.log('   - Para: g.a.gomez2016@gmail.com');
+  console.log('   - Para: soporteagendup@gmail.com');
   
   try {
     const result = await resend.emails.send({
       from: 'AgendUp <noreply@bookingsaas.app>',
-      to: 'g.a.gomez2016@gmail.com',
+      to: 'soporteagendup@gmail.com',
       subject: '🧪 Test de Email - AgendUp',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -61,7 +61,7 @@ async function testEmail() {
     console.log('\n✅ EMAIL ENVIADO EXITOSAMENTE!');
     console.log('\nDetalles de la respuesta:');
     console.log(JSON.stringify(result, null, 2));
-    console.log('\n📬 Revisa tu bandeja de entrada en g.a.gomez2016@gmail.com');
+    console.log('\n📬 Revisa tu bandeja de entrada en soporteagendup@gmail.com');
     console.log('   (También revisa la carpeta de spam si no lo ves)\n');
     
   } catch (error: any) {

@@ -103,11 +103,6 @@ npm run lint
 
 Después de ejecutar el seed, puedes iniciar sesión con:
 
-### SUPERADMIN
-- **Email**: g.a.gomez2016@gmail.com
-- **Contraseña**: Mi@081013.
-- **Acceso**: Panel de administración en `/admin`
-
 ### DEMO BUSINESS OWNER
 - **Email**: demo@business.com
 - **Contraseña**: Demo123!

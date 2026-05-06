@@ -50,10 +50,10 @@ export default function NegocioDesactivadoPage() {
               Para reactivar tu negocio o consultar el motivo de la desactivación, por favor contacta a:
             </p>
             <a
-              href="mailto:g.a.gomez2016@gmail.com"
+              href="mailto:soporteagendup@gmail.com"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 underline"
             >
-              g.a.gomez2016@gmail.com
+              soporteagendup@gmail.com
             </a>
           </div>
 
@@ -74,7 +74,7 @@ export default function NegocioDesactivadoPage() {
           <div className="space-y-3">
             {/* Contact Button */}
             <a
-              href="mailto:g.a.gomez2016@gmail.com?subject=Consulta sobre desactivación de mi negocio&body=Hola, mi negocio fue desactivado y me gustaría conocer el motivo y cómo reactivarlo."
+              href="mailto:soporteagendup@gmail.com?subject=Consulta sobre desactivación de mi negocio&body=Hola, mi negocio fue desactivado y me gustaría conocer el motivo y cómo reactivarlo."
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
             >
               <Mail className="w-4 h-4 mr-2" />
