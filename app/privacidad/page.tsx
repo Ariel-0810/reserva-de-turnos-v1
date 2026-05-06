@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Calendar, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidad — BookingSaaS',
-  description: 'Política de Privacidad de BookingSaaS adaptada a la Ley 25.326 de Protección de Datos Personales (Argentina).',
+  title: 'Política de Privacidad — AgendUp',
+  description: 'Política de Privacidad de AgendUp adaptada a la Ley 25.326 de Protección de Datos Personales (Argentina).',
 };
 
 export default function PrivacidadPage() {
@@ -17,7 +17,7 @@ export default function PrivacidadPage() {
               <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">BookingSaaS</span>
+              <span className="text-xl font-bold text-gray-900">AgendUp</span>
             </Link>
             <Link
               href="/"
@@ -41,7 +41,7 @@ export default function PrivacidadPage() {
           <div className="space-y-8 text-gray-700 leading-relaxed">
             <section>
               <p>
-                Esta Política de Privacidad describe cómo BookingSaaS (en adelante,
+                Esta Política de Privacidad describe cómo AgendUp (en adelante,
                 &quot;la Plataforma&quot;) recolecta, utiliza y protege la
                 información personal de sus usuarios, en cumplimiento con la
                 <strong> Ley 25.326 de Protección de los Datos Personales</strong>{' '}

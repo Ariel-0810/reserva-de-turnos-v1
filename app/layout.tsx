@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'BookingSaaS — Reservas online para canchas, barberías y pádel',
+  title: 'AgendUp — Reservas online para canchas de fútbol, pádel y barberías',
   description: 'Sistema de reservas online para canchas de fútbol, barberías, pádel y más. Link público para tus clientes, panel de gestión y notificaciones automáticas. Probalo gratis 7 días.',
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   icons: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: 'BookingSaaS — Reservas online para tu negocio',
+    title: 'AgendUp — Reservas online para tu negocio',
     description: 'Reservas online para canchas amateurs, barberías y pádel. Link público, panel de gestión y notificaciones automáticas.',
     images: ['/og-image.png'],
     type: 'website',

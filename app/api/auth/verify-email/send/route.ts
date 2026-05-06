@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Send email with code
     const emailResult = await sendEmail({
       to: email,
-      subject: 'Código de verificación - BookingSaaS',
+      subject: 'Código de verificación - AgendUp',
       html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #0d9488;">Verifica tu email</h2>
         <p>Tu código de verificación es:</p>

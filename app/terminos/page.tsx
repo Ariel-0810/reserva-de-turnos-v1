@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Calendar, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Términos y Condiciones — BookingSaaS',
-  description: 'Términos y Condiciones de uso de BookingSaaS.',
+  title: 'Términos y Condiciones — AgendUp',
+  description: 'Términos y Condiciones de uso de AgendUp.',
 };
 
 export default function TerminosPage() {
@@ -17,7 +17,7 @@ export default function TerminosPage() {
               <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">BookingSaaS</span>
+              <span className="text-xl font-bold text-gray-900">AgendUp</span>
             </Link>
             <Link
               href="/"
@@ -42,7 +42,7 @@ export default function TerminosPage() {
             <section>
               <p>
                 Estos Términos y Condiciones (en adelante, &quot;los
-                Términos&quot;) regulan el uso de la plataforma BookingSaaS (en
+                Términos&quot;) regulan el uso de la plataforma AgendUp (en
                 adelante, &quot;la Plataforma&quot;), provista por{' '}
                 <strong>[Nombre del titular / Razón social]</strong>, con domicilio
                 en [Ciudad, Provincia, Argentina]. Al crear una cuenta o usar la
@@ -55,7 +55,7 @@ export default function TerminosPage() {
                 1. Descripción del servicio
               </h2>
               <p>
-                BookingSaaS es un sistema de reservas online para negocios
+                AgendUp es un sistema de reservas online para negocios
                 (canchas de fútbol amateur, barberías, pádel, peluquerías y rubros
                 similares). La Plataforma permite a los titulares de un negocio
                 publicar un link público, configurar servicios y horarios, y

@@ -38,7 +38,8 @@ type View = 'day' | 'week' | 'month';
 
 const HOUR_START = 8;
 const HOUR_END = 23;
-const PX_PER_MINUTE = 1; // 60px por hora
+const PX_PER_MINUTE_DESKTOP = 1;   // 60px/hora
+const PX_PER_MINUTE_MOBILE = 0.55; // 33px/hora — entran 15h en ~500px
 
 const monthNames = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -99,6 +100,15 @@ export function CalendarClient() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [view, setView] = useState<View>('month');
   const [serviceFilter, setServiceFilter] = useState<string>('all');
+  const [pxPerMinute, setPxPerMinute] = useState<number>(PX_PER_MINUTE_DESKTOP);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const apply = () => setPxPerMinute(mq.matches ? PX_PER_MINUTE_MOBILE : PX_PER_MINUTE_DESKTOP);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -200,14 +210,14 @@ export function CalendarClient() {
     return Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i);
   }, []);
   const totalMinutes = (HOUR_END - HOUR_START) * 60;
-  const totalPx = totalMinutes * PX_PER_MINUTE;
+  const totalPx = totalMinutes * pxPerMinute;
 
   // Posicionamiento de un bloque dentro del rango HOUR_START..HOUR_END
   const getBlockStyle = (b: Booking) => {
     const startMin = timeToMinutes(b.startTime);
     const endMin = timeToMinutes(b.endTime);
-    const top = Math.max(0, (startMin - HOUR_START * 60) * PX_PER_MINUTE);
-    const height = Math.max(20, (endMin - startMin) * PX_PER_MINUTE);
+    const top = Math.max(0, (startMin - HOUR_START * 60) * pxPerMinute);
+    const height = Math.max(20, (endMin - startMin) * pxPerMinute);
     return { top: `${top}px`, height: `${height}px` };
   };
 
@@ -339,6 +349,7 @@ export function CalendarClient() {
               bookingsByDay={weekBookingsByDay}
               hours={hours}
               totalPx={totalPx}
+              pxPerMinute={pxPerMinute}
               getBlockStyle={getBlockStyle}
               todayKey={todayKey}
               onBookingClick={setSelectedBooking}
@@ -349,6 +360,7 @@ export function CalendarClient() {
               bookings={dayBookings}
               hours={hours}
               totalPx={totalPx}
+              pxPerMinute={pxPerMinute}
               getBlockStyle={getBlockStyle}
               onBookingClick={setSelectedBooking}
             />
@@ -544,18 +556,43 @@ function MonthView({
   );
 }
 
-function HoursColumn({ hours, totalPx }: { hours: number[]; totalPx: number }) {
+function HoursColumn({
+  hours,
+  totalPx,
+  pxPerMinute,
+  viewType,
+}: {
+  hours: number[];
+  totalPx: number;
+  pxPerMinute: number;
+  viewType: 'day' | 'week';
+}) {
   return (
-    <div className="relative w-12 sm:w-14 flex-shrink-0" style={{ height: `${totalPx}px` }}>
-      {hours.map((h) => (
-        <div
-          key={h}
-          className="absolute left-0 right-0 border-t border-gray-100 text-[10px] sm:text-xs text-gray-400 pl-1"
-          style={{ top: `${(h - HOUR_START) * 60 * PX_PER_MINUTE}px`, height: `${60 * PX_PER_MINUTE}px` }}
-        >
-          {String(h).padStart(2, '0')}:00
-        </div>
-      ))}
+    <div className="w-10 sm:w-14 flex-shrink-0">
+      {/* Placeholder header — matchea altura del header de cada columna de servicio/día */}
+      <div className="sticky top-0 bg-white border-b border-gray-100 px-2 py-2 text-center" aria-hidden>
+        {viewType === 'week' ? (
+          <>
+            <p className="text-[10px] sm:text-xs font-medium uppercase">&nbsp;</p>
+            <p className="text-base font-semibold">&nbsp;</p>
+          </>
+        ) : (
+          <p className="text-xs sm:text-sm font-semibold">&nbsp;</p>
+        )}
+      </div>
+
+      {/* Labels de hora alineados con sus gridlines */}
+      <div className="relative" style={{ height: `${totalPx}px` }}>
+        {hours.map((h) => (
+          <div
+            key={h}
+            className="absolute left-0 right-0 text-[10px] sm:text-xs text-gray-400 pl-1 -translate-y-1/2"
+            style={{ top: `${(h - HOUR_START) * 60 * pxPerMinute}px` }}
+          >
+            {String(h).padStart(2, '0')}:00
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -565,6 +602,7 @@ function DayView({
   bookings,
   hours,
   totalPx,
+  pxPerMinute,
   getBlockStyle,
   onBookingClick,
 }: {
@@ -572,6 +610,7 @@ function DayView({
   bookings: Booking[];
   hours: number[];
   totalPx: number;
+  pxPerMinute: number;
   getBlockStyle: (b: Booking) => { top: string; height: string };
   onBookingClick: (b: Booking) => void;
 }) {
@@ -595,7 +634,7 @@ function DayView({
   return (
     <div className="overflow-x-auto">
       <div className="flex min-w-fit">
-        <HoursColumn hours={hours} totalPx={totalPx} />
+        <HoursColumn hours={hours} totalPx={totalPx} pxPerMinute={pxPerMinute} viewType="day" />
 
         {services.map((s) => (
           <div key={s.id} className="flex-1 min-w-[140px] border-l border-gray-100">
@@ -609,7 +648,7 @@ function DayView({
                 <div
                   key={h}
                   className="absolute left-0 right-0 border-t border-gray-100"
-                  style={{ top: `${(h - HOUR_START) * 60 * PX_PER_MINUTE}px` }}
+                  style={{ top: `${(h - HOUR_START) * 60 * pxPerMinute}px` }}
                 />
               ))}
 
@@ -643,6 +682,7 @@ function WeekView({
   bookingsByDay,
   hours,
   totalPx,
+  pxPerMinute,
   getBlockStyle,
   todayKey,
   onBookingClick,
@@ -651,6 +691,7 @@ function WeekView({
   bookingsByDay: Record<string, Booking[]>;
   hours: number[];
   totalPx: number;
+  pxPerMinute: number;
   getBlockStyle: (b: Booking) => { top: string; height: string };
   todayKey: string;
   onBookingClick: (b: Booking) => void;
@@ -658,7 +699,7 @@ function WeekView({
   return (
     <div className="overflow-x-auto">
       <div className="flex min-w-fit">
-        <HoursColumn hours={hours} totalPx={totalPx} />
+        <HoursColumn hours={hours} totalPx={totalPx} pxPerMinute={pxPerMinute} viewType="week" />
 
         {weekDays.map((d) => {
           const key = toLocalDateKey(d);
@@ -690,7 +731,7 @@ function WeekView({
                   <div
                     key={h}
                     className="absolute left-0 right-0 border-t border-gray-100"
-                    style={{ top: `${(h - HOUR_START) * 60 * PX_PER_MINUTE}px` }}
+                    style={{ top: `${(h - HOUR_START) * 60 * pxPerMinute}px` }}
                   />
                 ))}
 

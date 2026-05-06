@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     // Send email with code
     const emailResult = await sendEmail({
       to: email,
-      subject: 'Recuperar contraseña - BookingSaaS',
+      subject: 'Recuperar contraseña - AgendUp',
       html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #7c3aed;">Recuperar contraseña</h2>
         <p>Recibimos una solicitud para restablecer tu contraseña. Tu código de verificación es:</p>

@@ -15,11 +15,11 @@ export async function sendEmail({
 }: EmailParams): Promise<{ success: boolean; error?: any }> {
   try {
     console.log("📧 Intentando enviar email a:", to);
-    console.log("📧 Desde:", "BookingSaaS <noreply@bookingsaas.app>");
+    console.log("📧 Desde:", "AgendUp <noreply@bookingsaas.app>");
     console.log("📧 API Key presente:", !!process.env.RESEND_API_KEY);
     
     const result = await resend.emails.send({
-      from: "BookingSaaS <noreply@bookingsaas.app>",
+      from: "AgendUp <noreply@bookingsaas.app>",
       to,
       subject,
       html,
@@ -183,7 +183,7 @@ export function newBusinessRegistrationEmailToSuperadmin(params: {
       <h2 style="color: #7c3aed; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px;">
         🎉 Nuevo Negocio Registrado
       </h2>
-      <p style="font-size: 16px;">¡Un nuevo negocio se ha registrado en tu plataforma BookingSaaS!</p>
+      <p style="font-size: 16px;">¡Un nuevo negocio se ha registrado en tu plataforma AgendUp!</p>
       <div style="background: #f5f3ff; padding: 20px; border-radius: 12px; margin: 20px 0;">
         <h3 style="color: #7c3aed; margin-top: 0;">📋 Datos del Negocio</h3>
         <p style="margin: 10px 0;"><strong>Nombre del negocio:</strong> ${params?.businessName ?? ''}</p>

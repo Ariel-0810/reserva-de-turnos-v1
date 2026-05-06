@@ -1,4 +1,4 @@
-# BookingSaaS - Sistema de Reservas para Negocios
+# AgendUp - Sistema de Reservas para Negocios
 
 Plataforma completa para gestionar reservas y turnos de tu negocio construida con Next.js 14, TypeScript y Sequelize.
 
@@ -246,4 +246,4 @@ Para soporte y consultas, contacta al equipo de desarrollo.
 
 ---
 
-Desarrollado con ❤️ por el equipo de BookingSaaS
+Desarrollado con ❤️ por el equipo de AgendUp

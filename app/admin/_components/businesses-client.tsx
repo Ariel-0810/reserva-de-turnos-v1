@@ -299,7 +299,7 @@ export function BusinessesClient() {
     if (!phone) return null;
     const clean = phone.replace(/[^\d]/g, '');
     if (!clean) return null;
-    const text = encodeURIComponent(`Hola ${name}, te escribo desde BookingSaaS.`);
+    const text = encodeURIComponent(`Hola ${name}, te escribo desde AgendUp.`);
     return `https://wa.me/${clean}?text=${text}`;
   };
 

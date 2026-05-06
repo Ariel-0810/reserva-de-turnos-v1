@@ -25,14 +25,14 @@ async function testEmail() {
   
   // 3. Intentar enviar email de prueba
   console.log('\n3. Enviando email de prueba...');
-  console.log('   - Desde: BookingSaaS <noreply@bookingsaas.app>');
+  console.log('   - Desde: AgendUp <noreply@bookingsaas.app>');
   console.log('   - Para: g.a.gomez2016@gmail.com');
   
   try {
     const result = await resend.emails.send({
-      from: 'BookingSaaS <noreply@bookingsaas.app>',
+      from: 'AgendUp <noreply@bookingsaas.app>',
       to: 'g.a.gomez2016@gmail.com',
-      subject: '🧪 Test de Email - BookingSaaS',
+      subject: '🧪 Test de Email - AgendUp',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #22c55e; border-bottom: 3px solid #22c55e; padding-bottom: 10px;">
@@ -51,7 +51,7 @@ async function testEmail() {
           </div>
           <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
           <p style="color: #6b7280; font-size: 14px;">
-            Enviado desde: BookingSaaS<br>
+            Enviado desde: AgendUp<br>
             Fecha: ${new Date().toLocaleString('es-AR')}
           </p>
         </div>

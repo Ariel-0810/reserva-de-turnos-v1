@@ -73,24 +73,25 @@ export default async function HomePage() {
               <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">BookingSaaS</span>
+              <span className="text-xl font-bold text-gray-900">AgendUp</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <Link
                 href="/#pricing"
-                className="hidden sm:inline-flex px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-violet-700 transition"
+                className="px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold text-gray-700 hover:text-violet-700 transition whitespace-nowrap"
               >
                 Precios
               </Link>
               <Link
                 href="/login"
-                className="px-4 sm:px-5 py-2.5 text-sm font-semibold text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 rounded-xl transition-all duration-200 border border-violet-200 hover:border-violet-300 shadow-sm hover:shadow-md backdrop-blur-sm"
+                className="px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 rounded-xl transition-all duration-200 border border-violet-200 hover:border-violet-300 shadow-sm hover:shadow-md backdrop-blur-sm whitespace-nowrap"
               >
-                Iniciar Sesión
+                <span className="sm:hidden">Ingresar</span>
+                <span className="hidden sm:inline">Iniciar Sesión</span>
               </Link>
               <Link
                 href="/signup"
-                className="px-4 sm:px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
               >
                 Registrarse
               </Link>
@@ -255,7 +256,7 @@ export default async function HomePage() {
               <div className="w-7 h-7 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-900">BookingSaaS</span>
+              <span className="font-semibold text-gray-900">AgendUp</span>
             </div>
 
             <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-2 rounded-xl border border-violet-200">
