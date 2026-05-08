@@ -63,6 +63,9 @@ export function newBookingEmailToOwner(params: {
   endTime: string;
   uniqueId: string;
 }): string {
+  const appUrl = (process.env.NEXTAUTH_URL ?? '').replace(/\/$/, '') || 'https://agendup.vercel.app';
+  const dashboardUrl = `${appUrl}/dashboard?bookingId=${encodeURIComponent(params?.uniqueId ?? '')}`;
+
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #7c3aed; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px;">
@@ -78,7 +81,16 @@ export function newBookingEmailToOwner(params: {
         <p style="margin: 10px 0;"><strong>Teléfono:</strong> ${params?.customerPhone ?? ''}</p>
         ${params?.customerEmail ? `<p style="margin: 10px 0;"><strong>Email:</strong> ${params.customerEmail}</p>` : ''}
       </div>
-      <p style="color: #666; font-size: 14px;">Ingresa a tu dashboard para confirmar o gestionar esta reserva.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${dashboardUrl}"
+           style="display: inline-block; padding: 12px 28px; background: #7c3aed; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
+          Ver y confirmar reserva →
+        </a>
+      </div>
+      <p style="color: #666; font-size: 13px; text-align: center;">
+        O ingresá manualmente desde
+        <a href="${dashboardUrl}" style="color: #7c3aed;">${dashboardUrl}</a>
+      </p>
     </div>
   `;
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ClipboardList, Eye, Check, X, RefreshCw, Search, MessageCircle, Filter, Bell, BellOff, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,6 +101,23 @@ export function BookingsClient() {
   const [pendingWhatsApp, setPendingWhatsApp] = useState<{ booking: Booking; status: 'CONFIRMED' | 'CANCELLED' } | null>(null);
   const [lastSeenAt, setLastSeenAt] = useState<number>(0);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+
+  // Auto-abrir reserva si llegamos con ?bookingId=XXX (link desde email)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const autoOpenedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const targetId = searchParams?.get('bookingId') ?? null;
+    if (!targetId || autoOpenedRef.current === targetId || bookings.length === 0) return;
+    const target = bookings.find((b) => b?.uniqueId === targetId);
+    if (target) {
+      setSelectedBooking(target);
+      autoOpenedRef.current = targetId;
+      // Limpiar el query param para que no reabra al recargar
+      router.replace('/dashboard', { scroll: false });
+    }
+  }, [bookings, searchParams, router]);
   const seenIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef<boolean>(false);
   const notifPermissionRef = useRef<NotificationPermission>('default');
